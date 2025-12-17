@@ -1,0 +1,82 @@
+<div class="registro-container">
+    <div class="registro-card">
+        <h2>Crear Cuenta</h2>
+        <p class="subtitle">Únete a la plataforma de videojuegos</p>
+
+        <form (ngSubmit)="onSubmit()">
+
+            <!-- Nickname -->
+            <div class="form-group">
+                <label for="nickname">Nickname <span class="required">*</span></label>
+                <input type="text" id="nickname" [(ngModel)]="nickname" name="nickname"
+                    placeholder="Tu nombre de usuario" maxlength="50" required>
+            </div>
+
+            <!-- Correo -->
+            <div class="form-group">
+                <label for="correo">Correo Electrónico <span class="required">*</span></label>
+                <input type="email" id="correo" [(ngModel)]="correo" name="correo" placeholder="ejemplo@correo.com"
+                    maxlength="100" required>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-group">
+                <label for="password">Contraseña <span class="required">*</span></label>
+                <div class="password-input">
+                    <input [type]="mostrarPassword ? 'text' : 'password'" id="password" [(ngModel)]="password"
+                        name="password" placeholder="Mínimo 6 caracteres" required>
+                    <button type="button" class="toggle-password" (click)="toggleMostrarPassword()">
+                        {{ mostrarPassword ? '👁️' : '👁️‍🗨️' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Confirmar Contraseña -->
+            <div class="form-group">
+                <label for="confirmarPassword">Confirmar Contraseña <span class="required">*</span></label>
+                <input [type]="mostrarPassword ? 'text' : 'password'" id="confirmarPassword"
+                    [(ngModel)]="confirmarPassword" name="confirmarPassword" placeholder="Repite tu contraseña"
+                    required>
+            </div>
+
+            <!-- Fecha de Nacimiento -->
+            <div class="form-group">
+                <label for="fechaNacimiento">Fecha de Nacimiento <span class="required">*</span></label>
+                <input type="date" id="fechaNacimiento" [(ngModel)]="fechaNacimiento" name="fechaNacimiento"
+                    [max]="getCurrentDate()" required>
+                <small class="help-text">Debes tener al menos 13 años</small>
+            </div>
+
+            <!-- País -->
+            <div class="form-group">
+                <label for="pais">País <span class="required">*</span></label>
+                <select id="pais" [(ngModel)]="pais" name="pais" required>
+                    <option value="">Selecciona tu país</option>
+                    <option *ngFor="let p of paises" [value]="p">{{ p }}</option>
+                </select>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group">
+                <label for="telefono">Teléfono (Opcional)</label>
+                <input type="tel" id="telefono" [(ngModel)]="telefono" name="telefono" placeholder="+502 1234-5678"
+                    maxlength="20">
+            </div>
+
+            <!-- Mensaje de error -->
+            <div class="error-message" *ngIf="error">
+                {{ error }}
+            </div>
+
+            <!-- Botón de registro -->
+            <button type="submit" [disabled]="cargando" class="btn-registro">
+                {{ cargando ? 'Registrando...' : 'Crear Cuenta' }}
+            </button>
+        </form>
+
+        <!-- Link a login -->
+        <p class="login-link">
+            ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a>
+        </p>
+    </div>
+</div>

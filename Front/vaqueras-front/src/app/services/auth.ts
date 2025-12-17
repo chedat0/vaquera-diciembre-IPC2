@@ -8,6 +8,16 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegistroRequest {
+  nickname: string;
+  correo: string;
+  password: string;
+  fechaNacimiento: string;
+  telefono?: string;
+  pais: string;
+  idRol: number;
+}
+
 export interface Usuario {
   idUsuario: number;
   nickname: string;
@@ -20,6 +30,12 @@ export interface LoginResponse {
   success: boolean;
   message: string;
   data: Usuario | null;
+}
+
+export interface RegistroResponse {
+  success: boolean;
+  message: string;
+  data: any;
 }
 
 @Injectable({
@@ -52,6 +68,10 @@ login(correo: string, password: string): Observable<LoginResponse> {
       );
   }
 
+  registro(datos: RegistroRequest): Observable<RegistroResponse> {
+    return this.http.post<RegistroResponse>(`${this.apiUrl}/registro`, datos);
+  }
+  
   logout(): void {
     localStorage.removeItem('usuario');
     this.currentUserSubject.next(null);
