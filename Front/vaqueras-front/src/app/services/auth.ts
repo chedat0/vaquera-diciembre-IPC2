@@ -43,17 +43,16 @@ export interface RegistroResponse {
 })
 
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/vaqueras_IPC2';
+  public apiUrl = 'http://localhost:8080/vaqueras_IPC2';
   private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Cargar usuario desde localStorage al iniciar
     const usuarioGuardado = localStorage.getItem('usuario');
     if (usuarioGuardado) {
       this.currentUserSubject.next(JSON.parse(usuarioGuardado));
     }  
-  }
+  } 
 
 login(correo: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { correo, password })
@@ -71,7 +70,7 @@ login(correo: string, password: string): Observable<LoginResponse> {
   registro(datos: RegistroRequest): Observable<RegistroResponse> {
     return this.http.post<RegistroResponse>(`${this.apiUrl}/registro`, datos);
   }
-  
+
   logout(): void {
     localStorage.removeItem('usuario');
     this.currentUserSubject.next(null);

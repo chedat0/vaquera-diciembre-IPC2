@@ -1,7 +1,7 @@
 <div class="registro-container">
     <div class="registro-card">
         <h2>Crear Cuenta</h2>
-        <p class="subtitle">Únete a la plataforma de videojuegos</p>
+        <p class="subtitle">Únete a la comunidad Novus Gaming, la mejor plataforma de videojuegos</p>
 
         <form (ngSubmit)="onSubmit()">
 
@@ -9,33 +9,28 @@
             <div class="form-group">
                 <label for="nickname">Nickname <span class="required">*</span></label>
                 <input type="text" id="nickname" [(ngModel)]="nickname" name="nickname"
-                    placeholder="Tu nombre de usuario" maxlength="50" required>
+                    placeholder="Tu usuario" maxlength="50" required>
             </div>
 
             <!-- Correo -->
             <div class="form-group">
                 <label for="correo">Correo Electrónico <span class="required">*</span></label>
-                <input type="email" id="correo" [(ngModel)]="correo" name="correo" placeholder="ejemplo@correo.com"
+                <input type="email" id="correo" [(ngModel)]="correo" name="correo" placeholder="juan@mail.com"
                     maxlength="100" required>
             </div>
 
             <!-- Contraseña -->
             <div class="form-group">
-                <label for="password">Contraseña <span class="required">*</span></label>
-                <div class="password-input">
+                <label for="password">Contraseña <span class="required">*</span></label>                
                     <input [type]="mostrarPassword ? 'text' : 'password'" id="password" [(ngModel)]="password"
-                        name="password" placeholder="Mínimo 6 caracteres" required>
-                    <button type="button" class="toggle-password" (click)="toggleMostrarPassword()">
-                        {{ mostrarPassword ? '👁️' : '👁️‍🗨️' }}
-                    </button>
-                </div>
+                        name="password" placeholder="Mínimo 4 caracteres" required>                                    
             </div>
 
             <!-- Confirmar Contraseña -->
             <div class="form-group">
                 <label for="confirmarPassword">Confirmar Contraseña <span class="required">*</span></label>
                 <input [type]="mostrarPassword ? 'text' : 'password'" id="confirmarPassword"
-                    [(ngModel)]="confirmarPassword" name="confirmarPassword" placeholder="Repite tu contraseña"
+                    [(ngModel)]="confirmarPassword" name="confirmarPassword" placeholder="Ingresa de nuevo tu contraseña"
                     required>
             </div>
 
@@ -44,7 +39,7 @@
                 <label for="fechaNacimiento">Fecha de Nacimiento <span class="required">*</span></label>
                 <input type="date" id="fechaNacimiento" [(ngModel)]="fechaNacimiento" name="fechaNacimiento"
                     [max]="getCurrentDate()" required>
-                <small class="help-text">Debes tener al menos 13 años</small>
+                <small class="help-text">Debes tener al menos 12 años</small>
             </div>
 
             <!-- País -->
@@ -59,8 +54,8 @@
             <!-- Teléfono -->
             <div class="form-group">
                 <label for="telefono">Teléfono (Opcional)</label>
-                <input type="tel" id="telefono" [(ngModel)]="telefono" name="telefono" placeholder="+502 1234-5678"
-                    maxlength="20">
+                <input type="tel" id="telefono" [(ngModel)]="telefono" name="telefono" placeholder="1234-5678"
+                    maxlength="8">
             </div>
 
             <!-- Mensaje de error -->

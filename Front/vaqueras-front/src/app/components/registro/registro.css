@@ -3,28 +3,42 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-color: #050404cf; 
+    position: relative;
+}
+
+.registro-container::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;    
+    background-image: url('../../../../public/icons/LogoVaqueras1.png') ;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; 
 }
 
 .registro-card {
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    background-color: rgba(0,0, 0, 0.5);    
+    padding: 2rem;    
     width: 100%;
-    max-width: 500px;
+    max-width: 400px;         
+    position: relative;    
+    backdrop-filter: blur(5px);    
 }
 
 h2 {
     text-align: center;
-    color: #333;
+    color: #fdfdfd;
     margin-bottom: 10px;
 }
 
 .subtitle {
     text-align: center;
-    color: #666;
+    color: #d4c1c1;
     margin-bottom: 30px;
     font-size: 14px;
 }
@@ -36,7 +50,7 @@ h2 {
 label {
     display: block;
     margin-bottom: 5px;
-    color: #555;
+    color: #dacdcd;
     font-weight: 500;
     font-size: 14px;
 }
@@ -68,25 +82,12 @@ select:focus {
     align-items: center;
 }
 
-.password-input input {
-    padding-right: 45px;
-}
-
-.toggle-password {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    padding: 5px;
-}
 
 .help-text {
     display: block;
     margin-top: 5px;
     font-size: 12px;
-    color: #888;
+    color: #fef4f4;
 }
 
 .error-message {
@@ -124,12 +125,12 @@ select:focus {
 .login-link {
     text-align: center;
     margin-top: 20px;
-    color: #666;
+    color: #f3e9e9;
     font-size: 14px;
 }
 
 .login-link a {
-    color: #667eea;
+    color: #1638d2;
     text-decoration: none;
     font-weight: 600;
 }
