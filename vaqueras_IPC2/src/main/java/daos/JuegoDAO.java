@@ -7,6 +7,7 @@ package daos;
 import com.mycompany.vaqueras_ipc2.modelo.Juego;
 import com.mycompany.vaqueras_ipc2.modelo.ConnectionMySQL;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 /**
@@ -18,205 +19,490 @@ public class JuegoDAO {
     public List<Juego> listarTodos() {
         List<Juego> juegos = new ArrayList<>();
         ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "SELECT j.*, e.nombre as nombre_empresa " +
-                     "FROM juego j " +
-                     "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa " +
-                     "WHERE j.venta_activa = true " +
-                     "ORDER BY j.fecha_lanzamiento DESC";
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
         
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return juegos;
+            }
+            
+            String sql = "SELECT j.*, e.nombre as nombre_empresa " +
+                        "FROM juego j " +
+                        "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa " +
+                        "WHERE j.venta_activa = true " +
+                        "ORDER BY j.fecha_lanzamiento DESC";
+            
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
-                juegos.add(mapearJuegoConEmpresa(rs));
+                Juego juego = mapearJuegoConEmpresa(rs);
+                if (juego != null) {
+                    juegos.add(juego);
+                }
             }
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en listarTodos: " + e.getMessage());
             e.printStackTrace();
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
         
         return juegos;
     }
     
-    // Buscar juego por ID
+    //Buscar juego por ID
     public Juego buscarPorId(Integer idJuego) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "SELECT j.*, e.nombre as nombre_empresa" + "FROM juego j" +
-                    "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa" +
-                    "WHERE j.id_juego = ?";
+        if (idJuego == null || idJuego <= 0) {
+            System.err.println("Error: idJuego inválido");
+            return null;
+        }
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return null;
+            }
             
+            String sql = "SELECT j.*, e.nombre as nombre_empresa " +
+                        "FROM juego j " +
+                        "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa " +
+                        "WHERE j.id_juego = ?";
+            
+            stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idJuego);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return mapearJuegoConEmpresa(rs);
             }
             
+            return null;
+            
         } catch (SQLException e) {
+            System.err.println("Error SQL en buscarPorId: " + e.getMessage());
             e.printStackTrace();
+            return null;
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
-        
-        return null;
     }
     
-    // Listar juegos por empresa
+    //Lista de juegos por cada empresa
     public List<Juego> listarPorEmpresa(Integer idEmpresa) {
         List<Juego> juegos = new ArrayList<>();
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "SELECT * FROM juego WHERE id_empresa = ? ORDER BY fecha_lanzamiento DESC";
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        if (idEmpresa == null || idEmpresa <= 0) {
+            System.err.println("Error: idEmpresa inválido");
+            return juegos;
+        }
+        
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return juegos;
+            }
             
+            String sql = "SELECT * FROM juego WHERE id_empresa = ? " +
+                        "ORDER BY fecha_lanzamiento DESC";
+            
+            stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idEmpresa);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             
             while (rs.next()) {
-                juegos.add(mapearJuego(rs));
+                Juego juego = mapearJuego(rs);
+                if (juego != null) {
+                    juegos.add(juego);
+                }
             }
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en listarPorEmpresa: " + e.getMessage());
             e.printStackTrace();
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
         
         return juegos;
     }
     
-    // Crear juego
+    //Crea nuevo juego
     public boolean crear(Juego juego) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "INSERT INTO juego (id_empresa, titulo, descripcion, requisitos_minimos, " +
-                     "precio, clasificacion_por_edad, fecha_lanzamiento, venta_activa) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Validaciones
+        if (juego == null) {
+            System.err.println("Error: juego no puede ser null");
+            return false;
+        }
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        if (juego.getIdEmpresa() == null || juego.getTitulo() == null || 
+            juego.getTitulo().trim().isEmpty()) {
+            System.err.println("Error: campos obligatorios no pueden ser null");
+            return false;
+        }
+        
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return false;
+            }
+            
+            String sql = "INSERT INTO juego (id_empresa, titulo, descripcion, requisitos_minimos, " +
+                        "precio, clasificacion_por_edad, fecha_lanzamiento, venta_activa) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             
             stmt.setInt(1, juego.getIdEmpresa());
             stmt.setString(2, juego.getTitulo());
-            stmt.setString(3, juego.getDescripcion());
-            stmt.setString(4, juego.getRequisitosMinimos());
+            
+            // Manejo seguro de campos null
+            if (juego.getDescripcion() != null) {
+                stmt.setString(3, juego.getDescripcion());
+            } else {
+                stmt.setNull(3, Types.VARCHAR);
+            }
+            
+            if (juego.getRequisitosMinimos() != null) {
+                stmt.setString(4, juego.getRequisitosMinimos());
+            } else {
+                stmt.setNull(4, Types.VARCHAR);
+            }
+            
             stmt.setDouble(5, juego.getPrecio());
-            stmt.setString(6, juego.getClasificacionPorEdad());
-            stmt.setDate(7, Date.valueOf(juego.getFechaLanzamiento()));
-            stmt.setBoolean(8, juego.getVentaActiva() != null ? juego.getVentaActiva() : true);
+            
+            if (juego.getClasificacionPorEdad() != null) {
+                stmt.setString(6, juego.getClasificacionPorEdad());
+            } else {
+                stmt.setNull(6, Types.VARCHAR);
+            }
+            
+            if (juego.getFechaLanzamiento() != null) {
+                stmt.setDate(7, Date.valueOf(juego.getFechaLanzamiento()));
+            } else {
+                stmt.setDate(7, Date.valueOf(LocalDate.now()));
+            }
+            
+            // Valor por defecto para venta_activa
+            Boolean ventaActiva = juego.getVentaActiva();
+            stmt.setBoolean(8, ventaActiva != null ? ventaActiva : true);
             
             int filasAfectadas = stmt.executeUpdate();
             
             if (filasAfectadas > 0) {
-                ResultSet rs = stmt.getGeneratedKeys();
+                rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
                     juego.setIdJuego(rs.getInt(1));
                 }
                 return true;
             }
             
+            return false;
+            
         } catch (SQLException e) {
+            System.err.println("Error SQL en crear: " + e.getMessage());
             e.printStackTrace();
+            return false;
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
-        
-        return false;
     }
     
-    // Actualizar juego
+    //Actualiza juego
     public boolean actualizar(Juego juego) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "UPDATE juego SET titulo = ?, descripcion = ?, requisitos_minimos = ?, " +
-                     "precio = ?, clasificacion_por_edad = ?, fecha_lanzamiento = ?, " +
-                     "venta_activa = ? WHERE id_juego = ?";
+        // Validaciones
+        if (juego == null || juego.getIdJuego() == null) {
+            System.err.println("Error: juego o ID no pueden ser null");
+            return false;
+        }
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                       
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return false;
+            }
+            
+            String sql = "UPDATE juego SET titulo = ?, descripcion = ?, requisitos_minimos = ?, " +
+                        "precio = ?, clasificacion_por_edad = ?, fecha_lanzamiento = ?, " +
+                        "venta_activa = ? WHERE id_juego = ?";
+            
+            stmt = conn.prepareStatement(sql);
             
             stmt.setString(1, juego.getTitulo());
-            stmt.setString(2, juego.getDescripcion());
-            stmt.setString(3, juego.getRequisitosMinimos());
+            
+            // Manejo seguro de campos null
+            if (juego.getDescripcion() != null) {
+                stmt.setString(2, juego.getDescripcion());
+            } else {
+                stmt.setNull(2, Types.VARCHAR);
+            }
+            
+            if (juego.getRequisitosMinimos() != null) {
+                stmt.setString(3, juego.getRequisitosMinimos());
+            } else {
+                stmt.setNull(3, Types.VARCHAR);
+            }
+            
             stmt.setDouble(4, juego.getPrecio());
-            stmt.setString(5, juego.getClasificacionPorEdad());
-            stmt.setDate(6, Date.valueOf(juego.getFechaLanzamiento()));
-            stmt.setBoolean(7, juego.getVentaActiva());
+            
+            if (juego.getClasificacionPorEdad() != null) {
+                stmt.setString(5, juego.getClasificacionPorEdad());
+            } else {
+                stmt.setNull(5, Types.VARCHAR);
+            }
+            
+            if (juego.getFechaLanzamiento() != null) {
+                stmt.setDate(6, Date.valueOf(juego.getFechaLanzamiento()));
+            } else {
+                stmt.setNull(6, Types.DATE);
+            }
+            
+            Boolean ventaActiva = juego.getVentaActiva();
+            stmt.setBoolean(7, ventaActiva != null ? ventaActiva : true);
+            
             stmt.setInt(8, juego.getIdJuego());
             
             return stmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en actualizar: " + e.getMessage());
             e.printStackTrace();
+            return false;
+            
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
-        
-        return false;
     }
     
-    // Desactivar venta
+    //Suspende la venta de un juego
     public boolean desactivarVenta(Integer idJuego) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "UPDATE juego SET venta_activa = false WHERE id_juego = ?";
+        if (idJuego == null || idJuego <= 0) {
+            System.err.println("Error: idJuego inválido");
+            return false;
+        }
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return false;
+            }
             
+            String sql = "UPDATE juego SET venta_activa = false WHERE id_juego = ?";
+            stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idJuego);
+            
             return stmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en desactivarVenta: " + e.getMessage());
             e.printStackTrace();
+            return false;
+            
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
-        
-        return false;
     }
     
-    // Buscar juegos por título
+    //Busqueda de juegos por titulo
     public List<Juego> buscarPorTitulo(String titulo) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
         List<Juego> juegos = new ArrayList<>();
-        String sql = "SELECT * FROM juego WHERE titulo LIKE ? AND venta_activa = true";
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        if (titulo == null || titulo.trim().isEmpty()) {
+            return juegos;
+        }
+        
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return juegos;
+            }
             
+            String sql = "SELECT j.*, e.nombre as nombre_empresa " +
+                        "FROM juego j " +
+                        "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa " +
+                        "WHERE j.titulo LIKE ? AND j.venta_activa = true " +
+                        "ORDER BY j.fecha_lanzamiento DESC";
+            
+            stmt = conn.prepareStatement(sql);
             stmt.setString(1, "%" + titulo + "%");
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             
             while (rs.next()) {
-                juegos.add(mapearJuego(rs));
+                Juego juego = mapearJuegoConEmpresa(rs);
+                if (juego != null) {
+                    juegos.add(juego);
+                }
             }
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en buscarPorTitulo: " + e.getMessage());
             e.printStackTrace();
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
         
         return juegos;
     }
     
-    // Mapear ResultSet a Juego
-    private Juego mapearJuegoConEmpresa(ResultSet rs) throws SQLException {
-        Juego juego = new Juego();
-        juego.setIdJuego(rs.getInt("id_juego"));
-        juego.setIdEmpresa(rs.getInt("id_empresa"));
-        juego.setTitulo(rs.getString("titulo"));
-        juego.setDescripcion(rs.getString("descripcion"));
-        juego.setRequisitosMinimos(rs.getString("requisitos_minimos"));
-        juego.setPrecio(rs.getDouble("precio"));
-        juego.setClasificacionPorEdad(rs.getString("clasificacion_por_edad"));
-        juego.setFechaLanzamiento(rs.getDate("fecha_lanzamiento").toLocalDate());
-        juego.setVentaActiva(rs.getBoolean("venta_activa"));
-        juego.setNombreEmpresa(rs.getString("nombre_empresa"));
-        return juego;
+    //Mapea Result set
+    private Juego mapearJuegoConEmpresa(ResultSet rs) {
+        try {
+            if (rs == null) {
+                return null;
+            }
+            
+            Juego juego = new Juego();
+            juego.setIdJuego(rs.getInt("id_juego"));
+            juego.setIdEmpresa(rs.getInt("id_empresa"));
+            juego.setTitulo(rs.getString("titulo"));
+            juego.setDescripcion(rs.getString("descripcion"));
+            juego.setRequisitosMinimos(rs.getString("requisitos_minimos"));
+            juego.setPrecio(rs.getDouble("precio"));
+            juego.setClasificacionPorEdad(rs.getString("clasificacion_por_edad"));
+            
+            // Manejo seguro de fecha
+            Date fechaBD = rs.getDate("fecha_lanzamiento");
+            if (fechaBD != null) {
+                juego.setFechaLanzamiento(fechaBD.toLocalDate());
+            }
+            
+            // Manejo seguro de boolean
+            boolean ventaActiva = rs.getBoolean("venta_activa");
+            juego.setVentaActiva(rs.wasNull() ? true : ventaActiva);
+            
+            // Nombre de empresa
+            juego.setNombreEmpresa(rs.getString("nombre_empresa"));
+            
+            return juego;
+            
+        } catch (SQLException e) {
+            System.err.println("Error al mapear juego: " + e.getMessage());
+            return null;
+        }
     }
-    private Juego mapearJuego(ResultSet rs) throws SQLException {
-        Juego juego = new Juego();
-        juego.setIdJuego(rs.getInt("id_juego"));
-        juego.setIdEmpresa(rs.getInt("id_empresa"));
-        juego.setTitulo(rs.getString("titulo"));
-        juego.setDescripcion(rs.getString("descripcion"));
-        juego.setRequisitosMinimos(rs.getString("requisitos_minimos"));
-        juego.setPrecio(rs.getDouble("precio"));
-        juego.setClasificacionPorEdad(rs.getString("clasificacion_por_edad"));
-        juego.setFechaLanzamiento(rs.getDate("fecha_lanzamiento").toLocalDate());
-        juego.setVentaActiva(rs.getBoolean("venta_activa"));
-        return juego;
+    
+    //mapeo sin nombre de empresa
+    private Juego mapearJuego(ResultSet rs) {
+        try {
+            if (rs == null) {
+                return null;
+            }
+            
+            Juego juego = new Juego();
+            juego.setIdJuego(rs.getInt("id_juego"));
+            juego.setIdEmpresa(rs.getInt("id_empresa"));
+            juego.setTitulo(rs.getString("titulo"));
+            juego.setDescripcion(rs.getString("descripcion"));
+            juego.setRequisitosMinimos(rs.getString("requisitos_minimos"));
+            juego.setPrecio(rs.getDouble("precio"));
+            juego.setClasificacionPorEdad(rs.getString("clasificacion_por_edad"));
+            
+            // Manejo seguro de fecha
+            Date fechaBD = rs.getDate("fecha_lanzamiento");
+            if (fechaBD != null) {
+                juego.setFechaLanzamiento(fechaBD.toLocalDate());
+            }
+            
+            // Manejo seguro de boolean
+            boolean ventaActiva = rs.getBoolean("venta_activa");
+            juego.setVentaActiva(rs.wasNull() ? true : ventaActiva);
+            
+            return juego;
+            
+        } catch (SQLException e) {
+            System.err.println("Error al mapear juego: " + e.getMessage());
+            return null;
+        }
     }
 }

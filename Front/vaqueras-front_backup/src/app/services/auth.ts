@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { backEnd } from '../app.config';
-
 
 export interface LoginRequest {
   correo: string;
@@ -45,7 +43,7 @@ export interface RegistroResponse {
 })
 
 export class AuthService {
-  private apiUrl = backEnd.apiUrl
+  public apiUrl = 'http://localhost:8080/vaqueras_IPC2';
   private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -54,8 +52,6 @@ export class AuthService {
     if (usuarioGuardado) {
       this.currentUserSubject.next(JSON.parse(usuarioGuardado));
     }  
-    console.log('AuthService inicializado');
-    console.log('Backend URL:', this.apiUrl);
   } 
 
 login(correo: string, password: string): Observable<LoginResponse> {

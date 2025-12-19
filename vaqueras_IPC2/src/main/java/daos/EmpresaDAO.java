@@ -14,145 +14,322 @@ import java.util.List;
  * @author jeffm
  */
 public class EmpresaDAO {
-    // Listar todas las empresas
-    public List<Empresa> listarTodas() {
+     public List<Empresa> listarTodas() {
+         //Listar empresas
         List<Empresa> empresas = new ArrayList<>();
         ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "SELECT * FROM empresa ORDER BY nombre";
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
         
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return empresas; // Retorna lista vacía en lugar de null
+            }
+            
+            String sql = "SELECT * FROM empresa ORDER BY nombre";
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
-                empresas.add(mapearEmpresa(rs));
+                Empresa empresa = mapearEmpresa(rs);
+                if (empresa != null) {
+                    empresas.add(empresa);
+                }
             }
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en listarTodas: " + e.getMessage());
             e.printStackTrace();
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
         
         return empresas;
     }
-    
-    // Buscar por ID
-    public Empresa buscarPorId(Integer idEmpresa) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "SELECT * FROM empresa WHERE id_empresa = ?";
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public Empresa buscarPorId(Integer idEmpresa) {
+        if (idEmpresa == null || idEmpresa <= 0) {
+            System.err.println("Error: idEmpresa inválido");
+            return null;
+        }
+        
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = connMySQL.conectar();
             
+            // VALIDACIÓN CRÍTICA
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return null;
+            }
+            
+            String sql = "SELECT * FROM empresa WHERE id_empresa = ?";
+            stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idEmpresa);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return mapearEmpresa(rs);
             }
             
+            return null;
+            
         } catch (SQLException e) {
+            System.err.println("Error SQL en buscarPorId: " + e.getMessage());
             e.printStackTrace();
+            return null;
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
+        }
+    }
+       
+    public boolean crear(Empresa empresa) {
+        // Validaciones de entrada
+        if (empresa == null) {
+            System.err.println("Error: empresa no puede ser null");
+            return false;
         }
         
-        return null;
-    }
-    
-    // Crear empresa
-    public boolean crear(Empresa empresa) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "INSERT INTO empresa (nombre, descripcion) VALUES (?, ?)";
+        if (empresa.getNombre() == null || empresa.getNombre().trim().isEmpty()) {
+            System.err.println("Error: nombre de empresa no puede ser null o vacío");
+            return false;
+        }
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            conn = connMySQL.conectar();
+                       
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return false;
+            }
+            
+            String sql = "INSERT INTO empresa (nombre, descripcion) VALUES (?, ?)";
+            stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             
             stmt.setString(1, empresa.getNombre());
-            stmt.setString(2, empresa.getDescripcion());
+            
+            // Manejo seguro de descripción nullable
+            if (empresa.getDescripcion() != null) {
+                stmt.setString(2, empresa.getDescripcion());
+            } else {
+                stmt.setNull(2, Types.VARCHAR);
+            }
             
             int filasAfectadas = stmt.executeUpdate();
             
             if (filasAfectadas > 0) {
-                ResultSet rs = stmt.getGeneratedKeys();
+                rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
                     empresa.setIdEmpresa(rs.getInt(1));
                 }
                 return true;
             }
             
+            return false;
+            
         } catch (SQLException e) {
+            System.err.println("✗ Error SQL en crear: " + e.getMessage());
             e.printStackTrace();
+            return false;
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
+        }
+    }
+        
+    public boolean actualizar(Empresa empresa) {
+        // Validaciones
+        if (empresa == null || empresa.getIdEmpresa() == null) {
+            System.err.println("Error: empresa o ID no pueden ser null");
+            return false;
         }
         
-        return false;
-    }
-    
-    // Actualizar empresa
-    public boolean actualizar(Empresa empresa) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "UPDATE empresa SET nombre = ?, descripcion = ? WHERE id_empresa = ?";
+        if (empresa.getNombre() == null || empresa.getNombre().trim().isEmpty()) {
+            System.err.println("Error: nombre de empresa no puede ser null o vacío");
+            return false;
+        }
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        
+        try {
+            conn = connMySQL.conectar();
+            
+            // VALIDACIÓN CRÍTICA
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return false;
+            }
+            
+            String sql = "UPDATE empresa SET nombre = ?, descripcion = ? WHERE id_empresa = ?";
+            stmt = conn.prepareStatement(sql);
             
             stmt.setString(1, empresa.getNombre());
-            stmt.setString(2, empresa.getDescripcion());
+            
+            // Manejo seguro de descripción null
+            if (empresa.getDescripcion() != null) {
+                stmt.setString(2, empresa.getDescripcion());
+            } else {
+                stmt.setNull(2, Types.VARCHAR);
+            }
+            
             stmt.setInt(3, empresa.getIdEmpresa());
             
             return stmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en actualizar: " + e.getMessage());
             e.printStackTrace();
+            return false;
+            
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
+        }
+    }
+        
+    public boolean eliminar(Integer idEmpresa) {
+        if (idEmpresa == null || idEmpresa <= 0) {
+            System.err.println("Error: idEmpresa inválido");
+            return false;
         }
         
-        return false;
-    }
-    
-    // Eliminar empresa
-    public boolean eliminar(Integer idEmpresa) {
         ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        String sql = "DELETE FROM empresa WHERE id_empresa = ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return false;
+            }
             
+            String sql = "DELETE FROM empresa WHERE id_empresa = ?";
+            stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idEmpresa);
+            
             return stmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en eliminar: " + e.getMessage());
             e.printStackTrace();
+            return false;
+            
+        } finally {
+            try {
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
+        }
+    }
+        
+    public List<Empresa> buscarPorNombre(String nombre) {
+        List<Empresa> empresas = new ArrayList<>();
+        
+        if (nombre == null || nombre.trim().isEmpty()) {
+            return empresas;
         }
         
-        return false;
-    }
-    
-    // Buscar por nombre
-    public List<Empresa> buscarPorNombre(String nombre) {
         ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = connMySQL.conectar();
-        List<Empresa> empresas = new ArrayList<>();
-        String sql = "SELECT * FROM empresa WHERE nombre LIKE ?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try {
+            conn = connMySQL.conectar();
+                        
+            if (conn == null) {
+                System.err.println("Error: No se pudo establecer conexión a la BD");
+                return empresas;
+            }
             
+            String sql = "SELECT * FROM empresa WHERE nombre LIKE ? ORDER BY nombre";
+            stmt = conn.prepareStatement(sql);
             stmt.setString(1, "%" + nombre + "%");
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             
             while (rs.next()) {
-                empresas.add(mapearEmpresa(rs));
+                Empresa empresa = mapearEmpresa(rs);
+                if (empresa != null) {
+                    empresas.add(empresa);
+                }
             }
             
         } catch (SQLException e) {
+            System.err.println("Error SQL en buscarPorNombre: " + e.getMessage());
             e.printStackTrace();
+            
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) connMySQL.desconectar(conn);
+            } catch (SQLException e) {
+                System.err.println("Error al cerrar recursos: " + e.getMessage());
+            }
         }
         
         return empresas;
     }
-    
-    // Mapear ResultSet a Empresa
-    private Empresa mapearEmpresa(ResultSet rs) throws SQLException {
-        Empresa empresa = new Empresa();
-        empresa.setIdEmpresa(rs.getInt("id_empresa"));
-        empresa.setNombre(rs.getString("nombre"));
-        empresa.setDescripcion(rs.getString("descripcion"));
-        return empresa;
+        
+    private Empresa mapearEmpresa(ResultSet rs) {
+        try {
+            if (rs == null) {
+                return null;
+            }
+            
+            Empresa empresa = new Empresa();
+            empresa.setIdEmpresa(rs.getInt("id_empresa"));
+            empresa.setNombre(rs.getString("nombre"));
+            empresa.setDescripcion(rs.getString("descripcion")); // Puede ser null
+            
+            return empresa;
+            
+        } catch (SQLException e) {
+            System.err.println("Error al mapear empresa: " + e.getMessage());
+            return null;
+        }
     }
 }

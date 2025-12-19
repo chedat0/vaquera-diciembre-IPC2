@@ -1,0 +1,39 @@
+<div class="tienda-container">
+    <header class="tienda-header">
+        <h1>Tienda de Videojuegos de NOVUS Gaming</h1>
+
+        <div class="buscador">
+            <input type="text" [(ngModel)]="busqueda" (keyup.enter)="buscarJuegos()" placeholder="Buscar juegos..."
+                class="search-input">
+            <button (click)="buscarJuegos()" class="btn-buscar">Buscar</button>
+        </div>
+    </header>
+
+    <div class="loading" *ngIf="cargando">
+        <p>Cargando juegos...</p>
+    </div>
+
+    <div class="juegos-grid" *ngIf="!cargando">
+        <div class="juego-card" *ngFor="let juego of juegosFiltrados" (click)="verDetalle(juego.idJuego!)">
+            <div class="juego-imagen">
+                <img [src]="juego.imagenPortada || 'assets/default-game.png'" [alt]="juego.titulo">
+                <span class="clasificacion">{{ juego.clasificacionPorEdad }}</span>
+            </div>
+
+            <div class="juego-info">
+                <h3>{{ juego.titulo }}</h3>
+                <p class="empresa">{{ juego.nombreEmpresa || 'Empresa1' }}</p>
+                <p class="descripcion">{{ juego.descripcion | slice:0:100 }}...</p>
+
+                <div class="juego-footer">
+                    <span class="precio">${{ juego.precio }}</span>
+                    <button class="btn-comprar">Comprar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="no-resultados" *ngIf="juegosFiltrados.length === 0">
+            <p>No se encontraron juegos</p>
+        </div>
+    </div>
+</div>
