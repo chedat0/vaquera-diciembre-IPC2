@@ -22,7 +22,7 @@ import java.util.List;
  * @author jeffm
  */
 
-@WebServlet("/Juegos")
+@WebServlet("/juegos")
 public class JuegoServlet extends HttpServlet {    
     private JuegoServicio juegoServicio;
     private Gson gson;
@@ -189,5 +189,6 @@ public class JuegoServlet extends HttpServlet {
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
     }
 }

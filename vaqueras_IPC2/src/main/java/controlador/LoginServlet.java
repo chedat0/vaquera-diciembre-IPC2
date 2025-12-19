@@ -4,6 +4,7 @@
  */
 package controlador;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -25,7 +26,7 @@ import java.io.BufferedReader;
  *
  * @author jeffm
  */
-@WebServlet(name = "LoginServlet", urlPatterns = {"/Login"})
+@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
       
     /**
@@ -37,11 +38,13 @@ public class LoginServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     private UsuarioServicio usuarioServicio;
+    private ObjectMapper objectMapper = new ObjectMapper();
     private Gson gson;
-    
+        
     @Override
     public void init() {
-        usuarioServicio = new UsuarioServicio();
+        // Inicializar en el método init() que el contenedor llama automáticamente
+        objectMapper = new ObjectMapper();
         gson = new Gson();
     }
     
@@ -49,29 +52,23 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
             
-        // Configurar CORS
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
-        response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        configurarCORS(response);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
+                      
         try {
-            // Leer el body del request
-            BufferedReader reader = request.getReader();
-            LoginDTO loginDTO = gson.fromJson(reader, LoginDTO.class);
+            LoginDTO loginDTO = objectMapper.readValue(request.getInputStream(), LoginDTO.class);
             
-            // Validar datos
-            if (loginDTO.getCorreo() == null || loginDTO.getPassword() == null) {
-                VerificadorDTO respuesta = new VerificadorDTO(
-                    false, 
-                    "Correo y contraseña son requeridos", 
-                    null
-                );
+            // Validaciones
+            if (loginDTO.getCorreo() == null || loginDTO.getCorreo().trim().isEmpty() ||
+                loginDTO.getPassword() == null || loginDTO.getPassword().trim().isEmpty()) {
+                
+                VerificadorDTO respuesta = new VerificadorDTO(false, "Correo y contraseña requeridos", null);
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.getWriter().write(gson.toJson(respuesta));
                 return;
             }
-            
+                                                
             // Autenticar
             UsuarioDTO usuario = usuarioServicio.autenticar(
                 loginDTO.getCorreo(), 
@@ -79,38 +76,38 @@ public class LoginServlet extends HttpServlet {
             );
             
             if (usuario != null) {
-                // Login exitoso - crear sesión
                 HttpSession session = request.getSession();
                 session.setAttribute("usuario", usuario);
                 
-                VerificadorDTO respuesta = new VerificadorDTO(
-                    true, 
-                    "Login exitoso", 
-                    usuario
-                );
+                VerificadorDTO respuesta = new VerificadorDTO(true, "Login exitoso", usuario);
                 response.getWriter().write(gson.toJson(respuesta));
             } else {
-                // Login fallido
-                VerificadorDTO respuesta = new VerificadorDTO(
-                    false, 
-                    "Correo o contraseña incorrectos", 
-                    null
-                );
+                VerificadorDTO respuesta = new VerificadorDTO(false, "Credenciales incorrectas", null);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write(gson.toJson(respuesta));
             }
             
         } catch (Exception e) {
             e.printStackTrace();
-            VerificadorDTO respuesta = new VerificadorDTO(
-                false, 
-                "Error en el servidor: " + e.getMessage(), 
-                null
-            );
+            VerificadorDTO respuesta = new VerificadorDTO(false, "Error: " + e.getMessage(), null);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write(gson.toJson(respuesta));
         }
+                
     }
-
+    
+    @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response) {
+        configurarCORS(response);
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
+    
+    private void configurarCORS(HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+        response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Max-Age", "3600");
+    }
     
 }

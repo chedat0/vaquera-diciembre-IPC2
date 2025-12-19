@@ -58,7 +58,7 @@ public class JuegoServicio {
         return new JuegoDTO(
             juego.getIdJuego(),
             juego.getIdEmpresa(),
-            null, // nombreEmpresa - se puede obtener con un JOIN
+            juego.getNombreEmpresa(),
             juego.getTitulo(),
             juego.getDescripcion(),
             juego.getRequisitosMinimos(),

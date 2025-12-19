@@ -20,6 +20,7 @@ public class Juego {
     private String clasificacionPorEdad;
     private LocalDate fechaLanzamiento;
     private Boolean ventaActiva;
+    private String nombreEmpresa;
     
     // Constructores
     public Juego() {}
@@ -70,5 +71,8 @@ public class Juego {
     
     public Boolean getVentaActiva() { return ventaActiva; }
     public void setVentaActiva(Boolean ventaActiva) { this.ventaActiva = ventaActiva; }
+    
+    public String getNombreEmpresa() { return nombreEmpresa; }
+    public void setNombreEmpresa(String nombreEmpresa) { this.nombreEmpresa = nombreEmpresa; }
 
 }

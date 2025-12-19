@@ -19,13 +19,17 @@ public class JuegoDAO {
         List<Juego> juegos = new ArrayList<>();
         ConnectionMySQL connMySQL = new ConnectionMySQL();
         Connection conn = connMySQL.conectar();
-        String sql = "SELECT * FROM juego WHERE venta_activa = true ORDER BY fecha_lanzamiento DESC";
+        String sql = "SELECT j.*, e.nombre as nombre_empresa " +
+                     "FROM juego j " +
+                     "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa " +
+                     "WHERE j.venta_activa = true " +
+                     "ORDER BY j.fecha_lanzamiento DESC";
         
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                juegos.add(mapearJuego(rs));
+                juegos.add(mapearJuegoConEmpresa(rs));
             }
             
         } catch (SQLException e) {
@@ -39,7 +43,9 @@ public class JuegoDAO {
     public Juego buscarPorId(Integer idJuego) {
         ConnectionMySQL connMySQL = new ConnectionMySQL();
         Connection conn = connMySQL.conectar();
-        String sql = "SELECT * FROM juego WHERE id_juego = ?";
+        String sql = "SELECT j.*, e.nombre as nombre_empresa" + "FROM juego j" +
+                    "LEFT JOIN empresa e ON j.id_empresa = e.id_empresa" +
+                    "WHERE j.id_juego = ?";
         
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             
@@ -47,7 +53,7 @@ public class JuegoDAO {
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
-                return mapearJuego(rs);
+                return mapearJuegoConEmpresa(rs);
             }
             
         } catch (SQLException e) {
@@ -186,6 +192,20 @@ public class JuegoDAO {
     }
     
     // Mapear ResultSet a Juego
+    private Juego mapearJuegoConEmpresa(ResultSet rs) throws SQLException {
+        Juego juego = new Juego();
+        juego.setIdJuego(rs.getInt("id_juego"));
+        juego.setIdEmpresa(rs.getInt("id_empresa"));
+        juego.setTitulo(rs.getString("titulo"));
+        juego.setDescripcion(rs.getString("descripcion"));
+        juego.setRequisitosMinimos(rs.getString("requisitos_minimos"));
+        juego.setPrecio(rs.getDouble("precio"));
+        juego.setClasificacionPorEdad(rs.getString("clasificacion_por_edad"));
+        juego.setFechaLanzamiento(rs.getDate("fecha_lanzamiento").toLocalDate());
+        juego.setVentaActiva(rs.getBoolean("venta_activa"));
+        juego.setNombreEmpresa(rs.getString("nombre_empresa"));
+        return juego;
+    }
     private Juego mapearJuego(ResultSet rs) throws SQLException {
         Juego juego = new Juego();
         juego.setIdJuego(rs.getInt("id_juego"));
