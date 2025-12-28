@@ -167,14 +167,14 @@ public class UsuarioDAO {
             stmt.setString(2, usuario.getCorreo());
             stmt.setString(3, usuario.getPassword());
             
-            // Manejo seguro de fecha nullable
+            // Manejo seguro de fecha
             if (usuario.getFechaNacimiento() != null) {
                 stmt.setDate(4, Date.valueOf(usuario.getFechaNacimiento()));
             } else {
                 stmt.setNull(4, Types.DATE);
             }
             
-            // Manejo seguro de teléfono nullable
+            // Manejo seguro de teléfono
             if (usuario.getTelefono() != null) {
                 stmt.setString(5, usuario.getTelefono());
             } else {
