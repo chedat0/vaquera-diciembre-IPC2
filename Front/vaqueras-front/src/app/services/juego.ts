@@ -7,7 +7,7 @@ import { Juego, JuegoResponse } from '../models/juego';
     providedIn: 'root'
 })
 export class JuegoService {
-    private apiUrl = 'http://localhost:8080/vaqueras_IPC2/juegos';
+    private apiUrl = 'http://localhost:8080/vaqueras_IPC2-1.0-SNAPSHOT/juegos';
 
     constructor(private http: HttpClient) { }
 

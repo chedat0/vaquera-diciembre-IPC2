@@ -7,7 +7,7 @@ import { authHttpInterceptor } from './http/auth-http.interceptor';
 
 export const backEnd = {
   production: false,
-  apiUrl: 'http://localhost:8080/vaqueras_IPC2'
+  apiUrl: 'http://localhost:8080/vaqueras_IPC2-1.0-SNAPSHOT'
 };
 
 export const appConfig: ApplicationConfig = {

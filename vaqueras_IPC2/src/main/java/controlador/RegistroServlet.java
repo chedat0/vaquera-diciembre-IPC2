@@ -4,7 +4,8 @@
  */
 package controlador;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import otros.JacksonConfig;
 import dtos.VerificadorDTO;
 import com.mycompany.vaqueras_ipc2.modelo.Usuario;
 import servicios.UsuarioServicio;
@@ -27,12 +28,12 @@ import java.time.LocalDate;
 @WebServlet("/registro")
 public class RegistroServlet extends HttpServlet {
     private UsuarioServicio usuarioServicio;
-    private Gson gson;
+    private ObjectMapper mapper;
     
     @Override
     public void init() {
         usuarioServicio = new UsuarioServicio();
-        gson = new Gson();
+        mapper = JacksonConfig.createMapper();        
         System.out.println("RegistroServlet inicializado correctamente");
     }
     @Override
@@ -50,7 +51,7 @@ public class RegistroServlet extends HttpServlet {
         );
         
         response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write(gson.toJson(respuesta));
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
     }
     
     @Override
@@ -63,13 +64,13 @@ public class RegistroServlet extends HttpServlet {
         try {
             // Leer el body del request
             BufferedReader reader = request.getReader();
-            Usuario usuario = gson.fromJson(reader, Usuario.class);
+            Usuario usuario = mapper.readValue(request.getReader(), Usuario.class);
             
             // Usuario no null
             if (usuario == null) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "Datos de usuario inválidos", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -77,21 +78,21 @@ public class RegistroServlet extends HttpServlet {
             if (usuario.getNickname() == null || usuario.getNickname().trim().isEmpty()) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El nickname es requerido", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             if (usuario.getNickname().length() < 3) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El nickname debe tener al menos 3 caracteres", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             if (usuario.getNickname().length() > 50) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El nickname no puede exceder 50 caracteres", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -99,7 +100,7 @@ public class RegistroServlet extends HttpServlet {
             if (usuario.getCorreo() == null || usuario.getCorreo().trim().isEmpty()) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El correo es requerido", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -107,14 +108,14 @@ public class RegistroServlet extends HttpServlet {
             if (!usuario.getCorreo().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El formato del correo es inválido", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             if (usuario.getCorreo().length() > 100) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El correo no puede exceder 100 caracteres", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -122,14 +123,14 @@ public class RegistroServlet extends HttpServlet {
             if (usuario.getPassword() == null || usuario.getPassword().trim().isEmpty()) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "La contraseña es requerida", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             if (usuario.getPassword().length() < 4) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "La contraseña debe tener al menos 4 caracteres", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -137,7 +138,7 @@ public class RegistroServlet extends HttpServlet {
             if (usuario.getFechaNacimiento() == null) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "La fecha de nacimiento es requerida", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -145,25 +146,25 @@ public class RegistroServlet extends HttpServlet {
             if (usuario.getFechaNacimiento().isAfter(LocalDate.now())) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "La fecha de nacimiento no puede ser futura", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             // Validar edad mínima 
-            LocalDate hace13Anios = LocalDate.now().minusYears(12);
-            if (usuario.getFechaNacimiento().isAfter(hace13Anios)) {
+            LocalDate edadMinima = LocalDate.now().minusYears(12);
+            if (usuario.getFechaNacimiento().isAfter(edadMinima)) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "Debes tener al menos 12 años para registrarte", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             // Validar edad máxima 
-            LocalDate hace120Anios = LocalDate.now().minusYears(120);
-            if (usuario.getFechaNacimiento().isBefore(hace120Anios)) {
+            LocalDate edadMaxima = LocalDate.now().minusYears(120);
+            if (usuario.getFechaNacimiento().isBefore(edadMaxima)) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "La fecha de nacimiento no es válida", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -171,14 +172,14 @@ public class RegistroServlet extends HttpServlet {
             if (usuario.getPais() == null || usuario.getPais().trim().isEmpty()) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El país es requerido", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
             if (usuario.getPais().length() > 50) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El país no puede exceder 50 caracteres", null);
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -187,7 +188,7 @@ public class RegistroServlet extends HttpServlet {
                 if (usuario.getTelefono().length() < 8 || usuario.getTelefono().length() > 15) {
                     VerificadorDTO respuesta = new VerificadorDTO(false, "El teléfono debe tener entre 8 y 15 dígitos", null);
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(gson.toJson(respuesta));
+                    response.getWriter().write(mapper.writeValueAsString(respuesta));
                     return;
                 }
             }
@@ -197,7 +198,7 @@ public class RegistroServlet extends HttpServlet {
                 System.out.println("Intento de registro con correo existente: " + usuario.getCorreo());
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El correo ya está registrado", null);
                 response.setStatus(HttpServletResponse.SC_CONFLICT); // 409 Conflict
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
                 return;
             }
             
@@ -213,32 +214,32 @@ public class RegistroServlet extends HttpServlet {
                 System.out.println("Usuario registrado exitosamente: " + usuario.getCorreo());
                 VerificadorDTO respuesta = new VerificadorDTO(true, "Usuario registrado exitosamente", null);
                 response.setStatus(HttpServletResponse.SC_CREATED); // 201 Created
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
             } else {
                 System.err.println("Error al registrar usuario: " + usuario.getCorreo());
                 VerificadorDTO respuesta = new VerificadorDTO(false, "Error al registrar usuario", null);
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write(gson.toJson(respuesta));
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
             }
             
-        } catch (com.google.gson.JsonSyntaxException e) {
+        } catch (com.fasterxml.jackson.core.JsonParseException e) {
             System.err.println("Error: JSON inválido - " + e.getMessage());
             VerificadorDTO respuesta = new VerificadorDTO(false, "Formato JSON inválido", null);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write(gson.toJson(respuesta));
+            response.getWriter().write(mapper.writeValueAsString(respuesta));
             
         } catch (java.time.DateTimeException e) {
             System.err.println("Error: Fecha inválida - " + e.getMessage());
             VerificadorDTO respuesta = new VerificadorDTO(false, "El formato de la fecha es inválido", null);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write(gson.toJson(respuesta));
+            response.getWriter().write(mapper.writeValueAsString(respuesta));
             
         } catch (Exception e) {
             System.err.println("Error inesperado en registro: " + e.getMessage());
             e.printStackTrace();
             VerificadorDTO respuesta = new VerificadorDTO(false, "Error interno del servidor", null);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(gson.toJson(respuesta));
+            response.getWriter().write(mapper.writeValueAsString(respuesta));
         }
     }
         

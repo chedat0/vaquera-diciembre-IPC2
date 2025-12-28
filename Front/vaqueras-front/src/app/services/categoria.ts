@@ -7,7 +7,7 @@ import { Categoria, CategoriaResponse } from '../models/categoria';
     providedIn: 'root'
 })
 export class CategoriaService {
-    private apiUrl = 'http://localhost:8080/vaqueras_IPC2/categorias';
+    private apiUrl = 'http://localhost:8080/vaqueras_IPC2-1.0-SNAPSHOT/categorias';
 
     constructor(private http: HttpClient) { }
 
