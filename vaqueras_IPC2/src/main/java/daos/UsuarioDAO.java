@@ -13,6 +13,47 @@ import java.time.LocalDate;
  * @author jeffm
  */
 public class UsuarioDAO {
+    
+    //Obtener usuario por id
+    public Usuario obtenerUsuarioPorId(int idUsuario) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;       
+        String sql = "SELECT id_usuario, nickname, correo, fecha_nacimiento, telefono, pais, "
+                + "id_rol, biblioteca_publica FROM usuario WHERE id_usuario = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Usuario usuario = new Usuario();
+                usuario.setIdUsuario(rs.getInt("id_usuario"));
+                usuario.setNickname(rs.getString("nickname"));
+                usuario.setCorreo(rs.getString("correo"));
+
+                java.sql.Date fecha = rs.getDate("fecha_nacimiento");
+                if (fecha != null) {
+                    usuario.setFechaNacimiento(fecha.toLocalDate());
+                }
+
+                usuario.setTelefono(rs.getString("telefono"));
+                usuario.setPais(rs.getString("pais"));
+                usuario.setIdRol(rs.getInt("id_rol"));
+                usuario.setBibliotecaPublica(rs.getBoolean("biblioteca_publica"));
+
+                System.out.println("Usuario obtenido: " + usuario.getNickname());
+                return usuario;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al obtener usuario: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    
     // Buscar usuario por correo (para login)
     public Usuario buscarPorCorreo(String correo) {
         if (correo == null || correo.trim().isEmpty()) {

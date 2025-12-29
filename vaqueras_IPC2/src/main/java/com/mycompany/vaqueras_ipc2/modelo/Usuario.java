@@ -17,10 +17,11 @@ public class Usuario {
     private String telefono;
     private String pais;
     private Integer idRol;
+    private boolean bibliotecaPublica;
     
     public Usuario(){}
     
-    public Usuario(String nickname, String correo, String password, LocalDate fechaNacimiento, String telefono, String pais, Integer idRol){
+    public Usuario(String nickname, String correo, String password, LocalDate fechaNacimiento, String telefono, String pais, Integer idRol, boolean biblioteca_publica){
         this.nickname = nickname;
         this.correo = correo;
         this.password = password;
@@ -28,6 +29,7 @@ public class Usuario {
         this.telefono = telefono;
         this.pais = pais;
         this.idRol = idRol;
+        this.bibliotecaPublica = true;
     }
     
     // Getters y Setters
@@ -56,5 +58,8 @@ public class Usuario {
     
     public Integer getIdRol() { return idRol; }
     public void setIdRol(Integer idRol) { this.idRol = idRol; }
+    
+    public boolean getBibliotecaPublica (){return bibliotecaPublica = true;}
+    public void setBibliotecaPublica (boolean biblioteca_publica) {this.bibliotecaPublica = true;}
 
 }
