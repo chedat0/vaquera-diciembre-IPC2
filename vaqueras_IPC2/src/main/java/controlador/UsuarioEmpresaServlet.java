@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  *
  * @author jeffm
  */
-@WebServlet("usuarios-empresa/*")
+@WebServlet("/usuarios-empresa/*")
 public class UsuarioEmpresaServlet extends HttpServlet {
     
     private UsuarioEmpresaDAO usuarioEmpresaDAO;

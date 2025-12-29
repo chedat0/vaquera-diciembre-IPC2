@@ -244,6 +244,15 @@ public class EmpresaDAO {
                 return false;
             }
             
+            if (tieneUsuarios(idEmpresa)){
+                System.err.println("No se puede eliminar, la empresa tiene usuarios asignados");
+                return false;
+            }
+            
+            if (tieneJuegos(idEmpresa)){
+                System.err.println("No se puede eliminar, la empresa tiene juegos publicados");
+            }
+            
             String sql = "DELETE FROM empresa WHERE id_empresa = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idEmpresa);
@@ -331,5 +340,44 @@ public class EmpresaDAO {
             System.err.println("Error al mapear empresa: " + e.getMessage());
             return null;
         }
+    }
+    
+    private boolean tieneUsuarios (int idEmpresa){
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;        
+        
+        String sql = " SELECT COUNT(*) FROM usuario_empresa WHERE id_empresa = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, idEmpresa);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()){
+                return rs.getInt(1) > 0;                
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error al verificar usuarios: " + e.getMessage());
+        }
+        return false;
+    }
+    private boolean tieneJuegos (int idEmpresa){
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;        
+        
+        String sql = " SELECT COUNT(*) FROM juego WHERE id_empresa = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setInt(1, idEmpresa);
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()){
+                return rs.getInt(1) > 0;                
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error al verificar juegos: " + e.getMessage());
+        }
+        return false;
     }
 }

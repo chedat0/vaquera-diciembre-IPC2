@@ -8,6 +8,8 @@ import com.mycompany.vaqueras_ipc2.modelo.Usuario;
 import com.mycompany.vaqueras_ipc2.modelo.ConnectionMySQL;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 /**
  *
  * @author jeffm
@@ -244,5 +246,161 @@ public class UsuarioDAO {
                 System.err.println("Error al cerrar recursos: " + e.getMessage());
             }
         }
+    }
+    
+    //obtiene listado de jugadores
+    public List<Usuario> obtenerTodosJugadores() {
+        List<Usuario> jugadores = new ArrayList<>();
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String sql = "SELECT id_usuario, nickname, correo, fecha_nacimiento, telefono, "
+                + "pais, biblioteca_publica FROM usuario WHERE id_rol = 3 ORDER BY nickname";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setIdUsuario(rs.getInt("id_usuario"));
+                u.setNickname(rs.getString("nickname"));
+                u.setCorreo(rs.getString("correo"));
+
+                Date fecha = rs.getDate("fecha_nacimiento");
+                if (fecha != null) {
+                    u.setFechaNacimiento(fecha.toLocalDate());
+                }
+
+                u.setTelefono(rs.getString("telefono"));
+                u.setPais(rs.getString("pais"));
+                u.setBibliotecaPublica(rs.getBoolean("biblioteca_publica"));
+                u.setIdRol(3);
+
+                jugadores.add(u);
+            }
+
+            System.out.println("Obtenidos " + jugadores.size() + " jugadores");
+
+        } catch (SQLException e) {
+            System.err.println(" Error al obtener jugadores: " + e.getMessage());
+        }
+
+        return jugadores;
+    }
+    
+    //Actualiza jugadores
+    public boolean actualizarJugador(Usuario usuario) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String sql = "UPDATE usuario SET nickname = ?, fecha_nacimiento = ?, telefono = ?, "
+                + "pais = ?, biblioteca_publica = ? WHERE id_usuario = ? AND id_rol = 3";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, usuario.getNickname());
+            ps.setDate(2, Date.valueOf(usuario.getFechaNacimiento()));
+            ps.setString(3, usuario.getTelefono());
+            ps.setString(4, usuario.getPais());
+            ps.setBoolean(5, usuario.getBibliotecaPublica());
+            ps.setInt(6, usuario.getIdUsuario());
+
+            int filasAfectadas = ps.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("Jugador actualizado: " + usuario.getNickname());
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar jugador: " + e.getMessage());
+        }
+
+        return false;
+    }
+    
+    //Elimina un jugador
+    public boolean eliminarJugador(int idUsuario) {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String sql = "DELETE FROM usuario WHERE id_usuario = ? AND id_rol = 3";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+
+            int filasAfectadas = ps.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("Jugador eliminado: " + idUsuario);
+                return true;
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar jugador: " + e.getMessage());
+        }
+
+        return false;
+    }
+    
+    //Busca jugadores por nickname
+    public List<Usuario> buscarJugadoresPorNickname(String nickname) {
+        List<Usuario> jugadores = new ArrayList<>();
+
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String sql = "SELECT id_usuario, nickname, correo, fecha_nacimiento, telefono, "
+                + "pais, biblioteca_publica FROM usuario "
+                + "WHERE id_rol = 3 AND nickname LIKE ? ORDER BY nickname";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + nickname + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setIdUsuario(rs.getInt("id_usuario"));
+                u.setNickname(rs.getString("nickname"));
+                u.setCorreo(rs.getString("correo"));
+
+                Date fecha = rs.getDate("fecha_nacimiento");
+                if (fecha != null) {
+                    u.setFechaNacimiento(fecha.toLocalDate());
+                }
+
+                u.setTelefono(rs.getString("telefono"));
+                u.setPais(rs.getString("pais"));
+                u.setBibliotecaPublica(rs.getBoolean("biblioteca_publica"));
+                u.setIdRol(3);
+
+                jugadores.add(u);
+            }
+
+        } catch (SQLException e) {
+            System.err.println(" Error al buscar jugadores: " + e.getMessage());
+        }
+
+        return jugadores;
+    }
+    
+    //Cantidad de jugadores registrados
+    public int contarJugadores() {
+        ConnectionMySQL connMySQL = new ConnectionMySQL();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String sql = "SELECT COUNT(*) FROM usuario WHERE id_rol = 3";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            System.err.println(" Error al contar jugadores: " + e.getMessage());
+        }
+
+        return 0;
     }
 }
