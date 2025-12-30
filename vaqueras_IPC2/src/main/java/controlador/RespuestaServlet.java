@@ -7,6 +7,7 @@ package controlador;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
+import daos.LicenciaDAO;
 import daos.ComentarioDAO;
 import daos.RespuestaDAO;
 import dtos.RespuestaDTO;
@@ -139,6 +140,14 @@ public class RespuestaServlet extends HttpServlet{
                 return;
             }
             
+            LicenciaDAO licenciaDAO = new LicenciaDAO();
+            boolean tieneLicencia = licenciaDAO.tieneLicencia(dto.getIdUsuario(), comentario.getIdJuego());
+
+            if (!tieneLicencia) {
+                enviarError(response, HttpServletResponse.SC_FORBIDDEN,
+                        "Solo usuarios con licencia pueden responder");
+                return;
+            }
             // Crear respuesta
             Respuesta respuesta = new Respuesta();
             respuesta.setIdComentario(dto.getIdComentario());

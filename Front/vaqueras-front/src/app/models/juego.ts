@@ -1,20 +1,24 @@
+import { Categoria } from "./categoria";
+
 export interface Juego {
-    idJuego?: number;
-    idEmpresa: number;
-    nombreEmpresa?: string;
+    idJuego: number;
     titulo: string;
     descripcion: string;
-    requisitosMinimos: string;
     precio: number;
-    clasificacionPorEdad: string;
-    fechaLanzamiento: string;
-    ventaActiva?: boolean;
-    categorias?: string[];
-    imagenPortada?: string;
+    fechaPublicacion: string;
+    imagenUrl?: string;
+    idEmpresa: number;
+    nombreEmpresa?: string;
+    categorias?: Categoria[];
+    promedioCalificacion?: number;
+    totalVentas?: number;
 }
 
-export interface JuegoResponse {
-    success: boolean;
-    message: string;
-    data: Juego | Juego[] | null;
+export interface CreateJuegoRequest {
+    titulo: string;
+    descripcion: string;
+    precio: number;
+    fechaPublicacion: string;
+    idEmpresa: number;
+    categoriasIds?: number[];
 }

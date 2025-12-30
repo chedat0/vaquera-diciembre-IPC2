@@ -1,7 +1,9 @@
 export interface Categoria {
     idCategoria?: number;
     nombre: string;
+    descripcion?: string;
     activado?: boolean;
+
 }
 
 export interface CategoriaResponse {
