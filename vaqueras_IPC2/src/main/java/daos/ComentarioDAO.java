@@ -17,9 +17,7 @@ import java.util.List;
  */
 public class ComentarioDAO {
     ConnectionMySQL connMySQL = new ConnectionMySQL();
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
+    Connection conn = null;   
     
     public ComentarioDAO() {
         conn = connMySQL.conectar();

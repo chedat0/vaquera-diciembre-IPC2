@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,8 +56,9 @@ public class UsuardioAdminServlet extends HttpServlet{
             if (pathInfo == null || pathInfo.equals("/")) {
                 // Listar todos
                 List<Usuario> admins = adminDAO.obtenerTodosAdmins();
+                List<Map<String, Object>> adminsDTO = convertirAMapas(admins);
                 enviarRespuesta(response, HttpServletResponse.SC_OK, 
-                    true, "Administradores obtenidos", admins);
+                    true, "Administradores obtenidos", adminsDTO);
                 
             } else {
                 // Obtener uno específico
@@ -64,15 +66,16 @@ public class UsuardioAdminServlet extends HttpServlet{
                 int idUsuario = Integer.parseInt(pathParts[1]);
                 
                 Usuario admin = adminDAO.obtenerAdminPorId(idUsuario);
-                
+                Map<String, Object> adminDTO = convertirAMapa(admin); 
                 if (admin == null) {
                     enviarError(response, HttpServletResponse.SC_NOT_FOUND, 
                         "Usuario administrador no encontrado");
                     return;
                 }
+                                
                 
                 enviarRespuesta(response, HttpServletResponse.SC_OK, 
-                    true, "Administrador obtenido", admin);
+                    true, "Administrador obtenido", adminDTO);
             }
             
         } catch (NumberFormatException e) {
@@ -269,6 +272,30 @@ public class UsuardioAdminServlet extends HttpServlet{
         }
     }
      
+    private Map<String, Object> convertirAMapa(Usuario u) {
+        Map<String, Object> mapa = new HashMap<>();
+        mapa.put("idUsuario", u.getIdUsuario());
+        mapa.put("nickname", u.getNickname());
+        mapa.put("correo", u.getCorreo());
+        mapa.put("fechaNacimiento", u.getFechaNacimiento() != null
+                ? u.getFechaNacimiento().toString() : null);
+        mapa.put("telefono", u.getTelefono());
+        mapa.put("pais", u.getPais());        
+        mapa.put("idRol", u.getIdRol());
+
+        return mapa;
+    }
+
+    //Método auxiliar para convertir lista de Usuarios
+    private List<Map<String, Object>> convertirAMapas(List<Usuario> usuarios) {
+        List<Map<String, Object>> mapas = new ArrayList<>();
+
+        for (Usuario u : usuarios) {
+            mapas.add(convertirAMapa(u));
+        }
+
+        return mapas;
+    }
      private void enviarRespuesta(HttpServletResponse response, int statusCode, 
                                 boolean success, String mensaje, Object data) throws IOException {
         response.setContentType("application/json");

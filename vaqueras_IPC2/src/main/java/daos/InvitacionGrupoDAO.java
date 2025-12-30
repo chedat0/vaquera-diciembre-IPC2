@@ -17,9 +17,7 @@ import java.util.List;
 public class InvitacionGrupoDAO {
     ConnectionMySQL connMySQL = new ConnectionMySQL();
     Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
-
+    
     public InvitacionGrupoDAO() {
         conn = connMySQL.conectar();
     }

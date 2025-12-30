@@ -19,9 +19,7 @@ import java.util.Map;
  */
 public class BannerDAO {
     ConnectionMySQL connMySQL = new ConnectionMySQL();
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
+    Connection conn = null;    
     
     public BannerDAO() {
         conn = connMySQL.conectar();

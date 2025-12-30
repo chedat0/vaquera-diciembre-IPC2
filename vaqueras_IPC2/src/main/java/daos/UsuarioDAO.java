@@ -15,12 +15,15 @@ import java.util.List;
  * @author jeffm
  */
 public class UsuarioDAO {
+    ConnectionMySQL connMySQL = new ConnectionMySQL();
+    Connection conn = null;
     
+    public UsuarioDAO(){
+        conn = connMySQL.conectar();
+    }
     //Obtener usuario por id
-    public Usuario obtenerUsuarioPorId(int idUsuario) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;       
+    public Usuario obtenerUsuarioPorId(int idUsuario) {        
+        
         String sql = "SELECT id_usuario, nickname, correo, fecha_nacimiento, telefono, pais, "
                 + "id_rol, biblioteca_publica FROM usuario WHERE id_usuario = ?";
 
@@ -58,15 +61,14 @@ public class UsuarioDAO {
     
     // Buscar usuario por correo (para login)
     public Usuario buscarPorCorreo(String correo) {
+        
         if (correo == null || correo.trim().isEmpty()) {
             System.err.println("Error: correo no puede ser null o vacío");
             return null;
         }
         
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
         PreparedStatement stmt = null;
-        ResultSet rs = null;
+        ResultSet rs = null;           
         
         try {
             conn = connMySQL.conectar();
@@ -250,10 +252,7 @@ public class UsuarioDAO {
     
     //obtiene listado de jugadores
     public List<Usuario> obtenerTodosJugadores() {
-        List<Usuario> jugadores = new ArrayList<>();
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;
+        List<Usuario> jugadores = new ArrayList<>();              
         String sql = "SELECT id_usuario, nickname, correo, fecha_nacimiento, telefono, "
                 + "pais, biblioteca_publica FROM usuario WHERE id_rol = 3 ORDER BY nickname";
 
@@ -290,9 +289,7 @@ public class UsuarioDAO {
     
     //Actualiza jugadores
     public boolean actualizarJugador(Usuario usuario) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;
+              
         String sql = "UPDATE usuario SET nickname = ?, fecha_nacimiento = ?, telefono = ?, "
                 + "pais = ?, biblioteca_publica = ? WHERE id_usuario = ? AND id_rol = 3";
 
@@ -320,9 +317,7 @@ public class UsuarioDAO {
     
     //Elimina un jugador
     public boolean eliminarJugador(int idUsuario) {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;
+             
         String sql = "DELETE FROM usuario WHERE id_usuario = ? AND id_rol = 3";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -345,10 +340,7 @@ public class UsuarioDAO {
     //Busca jugadores por nickname
     public List<Usuario> buscarJugadoresPorNickname(String nickname) {
         List<Usuario> jugadores = new ArrayList<>();
-
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;
+             
         String sql = "SELECT id_usuario, nickname, correo, fecha_nacimiento, telefono, "
                 + "pais, biblioteca_publica FROM usuario "
                 + "WHERE id_rol = 3 AND nickname LIKE ? ORDER BY nickname";
@@ -385,9 +377,7 @@ public class UsuarioDAO {
     
     //Cantidad de jugadores registrados
     public int contarJugadores() {
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;
+               
         String sql = "SELECT COUNT(*) FROM usuario WHERE id_rol = 3";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {

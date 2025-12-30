@@ -14,9 +14,7 @@ import java.sql.*;
  */
 public class CarteraDAO {
     ConnectionMySQL connMySQL = new ConnectionMySQL();
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
+    Connection conn = null;    
     
     public CarteraDAO() {
         conn = connMySQL.conectar();

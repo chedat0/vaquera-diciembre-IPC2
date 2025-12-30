@@ -15,6 +15,9 @@ import java.util.List;
  * @author jeffm
  */
 public class JuegoDAO {
+    
+    ConnectionMySQL connMySQL = new ConnectionMySQL();
+    Connection conn = connMySQL.conectar();
     // Listar todos los juegos activos
     public List<Juego> listarTodos() {
         List<Juego> juegos = new ArrayList<>();
@@ -270,76 +273,64 @@ public class JuegoDAO {
             System.err.println("Error: juego o ID no pueden ser null");
             return false;
         }
-        
-        ConnectionMySQL connMySQL = new ConnectionMySQL();
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        
-        try {
-            conn = connMySQL.conectar();
-                       
-            if (conn == null) {
-                System.err.println("Error: No se pudo establecer conexión a la BD");
-                return false;
+        StringBuilder sql = new StringBuilder("UPDATE juego SET ");
+        List<Object> parametros = new ArrayList<>();
+
+        if (juego.getTitulo() != null) {
+            sql.append("titulo = ?, ");
+            parametros.add(juego.getTitulo());
+        }
+
+        if (juego.getDescripcion() != null) {
+            sql.append("descripcion = ?, ");
+            parametros.add(juego.getDescripcion());
+        }
+
+        if (juego.getPrecio() != null) {
+            sql.append("precio = ?, ");
+            parametros.add(juego.getPrecio());
+        }
+
+        if (juego.getRequisitosMinimos() != null) {
+            sql.append("requisitos_minimos = ?, ");
+            parametros.add(juego.getRequisitosMinimos());
+        }
+
+        if (juego.getClasificacionPorEdad() != null) {
+            sql.append("clasificacion_por_edad = ?, ");
+            parametros.add(juego.getClasificacionPorEdad());
+        }
+
+        if (juego.getFechaLanzamiento() != null) {
+            sql.append("fecha_lanzamiento = ?, ");
+            parametros.add(Date.valueOf(juego.getFechaLanzamiento()));
+        }
+
+        // Remover última coma
+        sql.setLength(sql.length() - 2);
+
+        sql.append(" WHERE id_juego = ?");
+        parametros.add(juego.getIdJuego());
+
+        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < parametros.size(); i++) {
+                ps.setObject(i + 1, parametros.get(i));
             }
-            
-            String sql = "UPDATE juego SET titulo = ?, descripcion = ?, requisitos_minimos = ?, " +
-                        "precio = ?, clasificacion_por_edad = ?, fecha_lanzamiento = ?, " +
-                        "venta_activa = ? WHERE id_juego = ?";
-            
-            stmt = conn.prepareStatement(sql);
-            
-            stmt.setString(1, juego.getTitulo());
-            
-            // Manejo seguro de campos null
-            if (juego.getDescripcion() != null) {
-                stmt.setString(2, juego.getDescripcion());
-            } else {
-                stmt.setNull(2, Types.VARCHAR);
+
+            int filasAfectadas = ps.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("Juego actualizado: " + juego.getTitulo());
+                return true;
             }
-            
-            if (juego.getRequisitosMinimos() != null) {
-                stmt.setString(3, juego.getRequisitosMinimos());
-            } else {
-                stmt.setNull(3, Types.VARCHAR);
-            }
-            
-            stmt.setDouble(4, juego.getPrecio());
-            
-            if (juego.getClasificacionPorEdad() != null) {
-                stmt.setString(5, juego.getClasificacionPorEdad());
-            } else {
-                stmt.setNull(5, Types.VARCHAR);
-            }
-            
-            if (juego.getFechaLanzamiento() != null) {
-                stmt.setDate(6, Date.valueOf(juego.getFechaLanzamiento()));
-            } else {
-                stmt.setNull(6, Types.DATE);
-            }
-            
-            Boolean ventaActiva = juego.getVentaActiva();
-            stmt.setBoolean(7, ventaActiva != null ? ventaActiva : true);
-            
-            stmt.setInt(8, juego.getIdJuego());
-            
-            return stmt.executeUpdate() > 0;
-            
+
         } catch (SQLException e) {
             System.err.println("Error SQL en actualizar: " + e.getMessage());
-            e.printStackTrace();
-            return false;
-            
-        } finally {
-            try {
-                if (stmt != null) stmt.close();
-                if (conn != null) connMySQL.desconectar(conn);
-            } catch (SQLException e) {
-                System.err.println("Error al cerrar recursos: " + e.getMessage());
-            }
         }
+
+        return false;
+
     }
-    
     //Suspende la venta de un juego
     public boolean desactivarVenta(Integer idJuego) {
         if (idJuego == null || idJuego <= 0) {

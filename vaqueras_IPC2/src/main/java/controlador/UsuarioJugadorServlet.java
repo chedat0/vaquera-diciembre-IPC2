@@ -18,7 +18,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 /**
  *
@@ -37,9 +40,9 @@ public class UsuarioJugadorServlet extends HttpServlet{
         usuarioDAO = new UsuarioDAO();                
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());                
-        gson = new Gson();
+        gson = new Gson();        
         
-        System.out.println(" UsuarioJugadorServlet inicializado");
+        System.out.println(" UsuarioJugadorServlet inicializado");        
     }
     
     //Lista de jugadores
@@ -56,14 +59,16 @@ public class UsuarioJugadorServlet extends HttpServlet{
             if (buscar != null && !buscar.trim().isEmpty()) {
                 // Buscar por nickname
                 List<Usuario> jugadores = usuarioDAO.buscarJugadoresPorNickname(buscar);
+                List<Map<String, Object>> jugadoresDTO = convertirAMapas(jugadores);
                 enviarRespuesta(response, HttpServletResponse.SC_OK, 
-                    true, "Jugadores encontrados", jugadores);
+                    true, "Jugadores encontrados", jugadoresDTO);
                 
             } else if (pathInfo == null || pathInfo.equals("/")) {
                 // Listar todos
                 List<Usuario> jugadores = usuarioDAO.obtenerTodosJugadores();
+                List<Map<String, Object>> jugadoresDTO = convertirAMapas(jugadores);
                 enviarRespuesta(response, HttpServletResponse.SC_OK, 
-                    true, "Jugadores obtenidos", jugadores);
+                    true, "Jugadores obtenidos", jugadoresDTO);
                 
             } else {
                 // Obtener uno específico
@@ -78,8 +83,9 @@ public class UsuarioJugadorServlet extends HttpServlet{
                     return;
                 }
                 
+                Map<String, Object> jugadorDTO = convertirAMapa(jugador);
                 enviarRespuesta(response, HttpServletResponse.SC_OK, 
-                    true, "Jugador obtenido", jugador);
+                    true, "Jugador obtenido", jugadorDTO);
             }
             
         } catch (NumberFormatException e) {
@@ -160,6 +166,32 @@ public class UsuarioJugadorServlet extends HttpServlet{
         } catch (NumberFormatException e) {
             enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID inválido");
         }
+    }
+    
+    private Map<String, Object> convertirAMapa(Usuario u) {
+        Map<String, Object> mapa = new HashMap<>();
+        mapa.put("idUsuario", u.getIdUsuario());
+        mapa.put("nickname", u.getNickname());
+        mapa.put("correo", u.getCorreo());
+        mapa.put("fechaNacimiento", u.getFechaNacimiento() != null
+                ? u.getFechaNacimiento().toString() : null);
+        mapa.put("telefono", u.getTelefono());
+        mapa.put("pais", u.getPais());
+        mapa.put("bibliotecaPublica", u.getBibliotecaPublica());
+        mapa.put("idRol", u.getIdRol());
+
+        return mapa;
+    }
+
+    //Método auxiliar para convertir lista de Usuarios
+    private List<Map<String, Object>> convertirAMapas(List<Usuario> usuarios) {
+        List<Map<String, Object>> mapas = new ArrayList<>();
+
+        for (Usuario u : usuarios) {
+            mapas.add(convertirAMapa(u));
+        }
+
+        return mapas;
     }
     
     private void enviarRespuesta(HttpServletResponse response, int statusCode, 

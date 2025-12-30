@@ -16,7 +16,7 @@ public class Juego {
     private String titulo;
     private String descripcion;
     private String requisitosMinimos;
-    private double precio;
+    private Double precio;
     private String clasificacionPorEdad;
     private LocalDate fechaLanzamiento;
     private Boolean ventaActiva;
@@ -56,8 +56,8 @@ public class Juego {
         this.requisitosMinimos = requisitosMinimos; 
     }
     
-    public double getPrecio() { return precio; }
-    public void setPrecio(double precio) { this.precio = precio; }
+    public Double getPrecio() { return precio; }
+    public void setPrecio(Double precio) { this.precio = precio; }
     
     public String getClasificacionPorEdad() { return clasificacionPorEdad; }
     public void setClasificacionPorEdad(String clasificacionPorEdad) { 

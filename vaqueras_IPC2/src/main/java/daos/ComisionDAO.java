@@ -17,9 +17,7 @@ import java.util.Map;
  */
 public class ComisionDAO {
     ConnectionMySQL connMySQL = new ConnectionMySQL();
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
+    Connection conn = null;    
     
     public ComisionDAO() {
         conn = connMySQL.conectar();

@@ -18,9 +18,7 @@ import java.util.List;
 public class RespuestaDAO {
     
     ConnectionMySQL connMySQL = new ConnectionMySQL();
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
+    Connection conn = null;    
     
     public RespuestaDAO() {
         conn = connMySQL.conectar();

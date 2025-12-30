@@ -78,8 +78,8 @@ public class CarteraServlet extends HttpServlet{
                 enviarError(response, HttpServletResponse.SC_NOT_FOUND, 
                     "Cartera no encontrada para el usuario");
                 return;
-            }
-                        
+            }            
+            
             CarteraDTO dto = new CarteraDTO();
             dto.setIdUsuario(cartera.getIdUsuario());
             dto.setSaldo(cartera.getSaldo());
