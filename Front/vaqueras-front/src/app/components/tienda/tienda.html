@@ -1,39 +1,160 @@
 <div class="tienda-container">
-    <header class="tienda-header">
-        <h1>Tienda de Videojuegos de NOVUS Gaming</h1>
 
-        <div class="buscador">
-            <input type="text" [(ngModel)]="busqueda" (keyup.enter)="buscarJuegos()" placeholder="Buscar juegos..."
-                class="search-input">
-            <button (click)="buscarJuegos()" class="btn-buscar">Buscar</button>
+    <div class="tienda-header">
+        <img src="/public/icons/LogoVaqueras1.png" alt="Vaqueras Logo" class="logo" />
+        <h1>Tienda de Juegos</h1>
+        <p class="subtitle">Explora nuestra colección de juegos</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert error">
+        <span class="icon-x"></span>
+        <span>{{ errorMessage }}</span>
+        <button class="close-btn" (click)="errorMessage = ''">
+            <span class="icon-close"></span>
+        </button>
+    </div>
+
+    <div *ngIf="successMessage" class="alert success">
+        <span class="icon-check"></span>
+        <span>{{ successMessage }}</span>
+        <button class="close-btn" (click)="successMessage = ''">
+            <span class="icon-close"></span>
+        </button>
+    </div>
+
+    <div class="filtros-container">
+
+        <div class="busqueda-box">
+            <span class="icon-search"></span>
+            <input type="text" [(ngModel)]="busqueda" (ngModelChange)="aplicarFiltros()"
+                placeholder="Buscar juegos por nombre..." class="busqueda-input" />
+            <button *ngIf="busqueda" class="clear-btn" (click)="busqueda = ''; aplicarFiltros()">
+                <span class="icon-close"></span>
+            </button>
         </div>
-    </header>
 
-    <div class="loading" *ngIf="cargando">
+        <div class="filtros-row">
+
+            <div class="filtro-grupo">
+                <label>Clasificación</label>
+                <select [(ngModel)]="clasificacionSeleccionada" (ngModelChange)="aplicarFiltros()"
+                    class="filtro-select">
+                    <option value="">Todas</option>
+                    <option value="E">E - Para todos</option>
+                    <option value="T">T - 12+ años</option>
+                    <option value="M">M - 16+ años</option>
+                    <option value="AO">AO - 18+ años</option>
+                </select>
+            </div>
+
+            <div class="filtro-grupo">
+                <label>Precio mínimo</label>
+                <input type="number" [(ngModel)]="precioMin" (ngModelChange)="aplicarFiltros()" placeholder="$0" min="0"
+                    class="filtro-input" />
+            </div>
+
+            <div class="filtro-grupo">
+                <label>Precio máximo</label>
+                <input type="number" [(ngModel)]="precioMax" (ngModelChange)="aplicarFiltros()" placeholder="$999"
+                    min="0" class="filtro-input" />
+            </div>
+
+            <div class="filtro-grupo">
+                <label>Ordenar por</label>
+                <select [(ngModel)]="ordenamiento" (ngModelChange)="aplicarFiltros()" class="filtro-select">
+                    <option value="recientes">Más recientes</option>
+                    <option value="precio-asc">Precio: Menor a mayor</option>
+                    <option value="precio-desc">Precio: Mayor a menor</option>
+                    <option value="nombre">Nombre (A-Z)</option>
+                </select>
+            </div>
+
+            <button class="btn-limpiar" (click)="limpiarFiltros()">
+                <span class="icon-refresh"></span>
+                Limpiar
+            </button>
+        </div>
+    </div>
+
+    <div class="resultados-info">
+        <p>
+            <strong>{{ juegosFiltrados.length }}</strong>
+            {{ juegosFiltrados.length === 1 ? 'juego encontrado' : 'juegos encontrados' }}
+        </p>
+    </div>
+
+    <div *ngIf="loading" class="loading-container">
+        <div class="icon-spinner"></div>
         <p>Cargando juegos...</p>
     </div>
 
-    <div class="juegos-grid" *ngIf="!cargando">
-        <div class="juego-card" *ngFor="let juego of juegosFiltrados" (click)="verDetalle(juego.idJuego!)">
-            <div class="juego-imagen">
-                <img [src]="juego.imagenPortada || 'assets/default-game.png'" [alt]="juego.titulo">
-                <span class="clasificacion">{{ juego.clasificacionPorEdad }}</span>
-            </div>
+    <div *ngIf="!loading && juegosFiltrados.length > 0" class="juegos-grid">
+        <div *ngFor="let juego of juegosFiltrados" class="juego-card">
 
-            <div class="juego-info">
-                <h3>{{ juego.titulo }}</h3>
-                <p class="empresa">{{ juego.nombreEmpresa || 'Empresa1' }}</p>
-                <p class="descripcion">{{ juego.descripcion | slice:0:100 }}...</p>
-
-                <div class="juego-footer">
-                    <span class="precio">${{ juego.precio }}</span>
-                    <button class="btn-comprar">Comprar</button>
+            <div class="imagen-container">
+                <img [src]="juego.imagenUrl || 'assets/default-game.png'" [alt]="juego.titulo" class="juego-imagen" />                
+                <div class="badge-overlay" [style.background-color]="getColor(juego.clasifiacionPorEdad || '')">
+                    {{ juego.clasifiacionPorEdad || 'N/A' }}
                 </div>
             </div>
-        </div>
 
-        <div class="no-resultados" *ngIf="juegosFiltrados.length === 0">
-            <p>No se encontraron juegos</p>
+            <!-- Info del juego -->
+            <div class="juego-info">
+                <h3 class="juego-titulo">{{ juego.titulo }}</h3>
+
+                <p class="juego-descripcion">
+                    {{ juego.descripcion.substring(0, 80) }}
+                    <span *ngIf="juego.descripcion && juego.descripcion.length > 80">...</span>
+                </p>
+
+                <!-- Empresa -->
+                <p class="juego-empresa" *ngIf="juego.nombreEmpresa">
+                    <span class="icon-building"></span>
+                    {{ juego.nombreEmpresa }}
+                </p>
+
+                <!-- Badge de clasificación -->
+                <div class="badge-clasificacion" [style.background-color]="getColor(juego.clasifiacionPorEdad || '')">
+                    <span class="clasificacion-text">
+                        {{ juego.clasifiacionPorEdad || 'Sin clasificar' }}
+                        <span class="texto-small" *ngIf="getEdadMinima(juego.clasifiacionPorEdad || '') > 0">
+                            - {{ getEdadMinima(juego.clasifiacionPorEdad || '') }}+
+                        </span>
+                    </span>
+                </div>
+
+                <!-- Precio -->
+                <div class="precio-container">
+                    <span class="precio">${{ juego.precio.toFixed(2) }}</span>
+                </div>
+
+                <!-- Botón de compra -->
+                <button class="btn-comprar" [disabled]="comprando || !usuario" (click)="comprarJuego(juego)">
+                    <span class="icon-cart" *ngIf="!comprando"></span>
+                    <span class="icon-spinner-small" *ngIf="comprando"></span>
+                    <span *ngIf="!comprando">Comprar Ahora</span>
+                    <span *ngIf="comprando">Procesando...</span>
+                </button>
+
+                <!-- Mensaje si no está logueado -->
+                <p *ngIf="!usuario" class="info-login">
+                    <span class="icon-lock"></span>
+                    Inicia sesión para comprar
+                </p>
+            </div>
+
         </div>
     </div>
+
+    <!-- Sin resultados -->
+    <div *ngIf="!loading && juegosFiltrados.length === 0" class="empty-state">
+        <div class="icon-empty"></div>
+        <h2>No se encontraron juegos</h2>
+        <p>Intenta cambiar los filtros de búsqueda</p>
+        <button class="btn-secondary" (click)="limpiarFiltros()">
+            <span class="icon-refresh"></span>
+            Limpiar filtros
+        </button>
+    </div>
+
 </div>

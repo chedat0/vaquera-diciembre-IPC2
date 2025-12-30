@@ -1,52 +1,107 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Juego, JuegoResponse } from '../models/juego';
+import { map } from 'rxjs';
+import { backEnd } from '../app.config';
+import { Juego, CreateJuegoRequest } from '../models/juego';
+import { Categoria } from '../models/categoria';
+import { ApiResponse } from '../models/enums';
 
 @Injectable({
     providedIn: 'root'
 })
 export class JuegoService {
-    private apiUrl = 'http://localhost:8080/vaqueras_IPC2-1.0-SNAPSHOT/juegos';
+    private apiUrl = `${backEnd.apiUrl}/juegos`;
 
     constructor(private http: HttpClient) { }
 
     // Listar todos los juegos
-    listarTodos(): Observable<JuegoResponse> {
-        return this.http.get<JuegoResponse>(this.apiUrl);
+    listarTodos(): Observable<Juego[]> {
+        return this.http.get<ApiResponse<Juego[]>>(this.apiUrl).pipe(
+            map(response => response.data || [])
+        );
     }
 
-    // Buscar juego por ID
-    buscarPorId(id: number): Observable<JuegoResponse> {
-        const params = new HttpParams().set('id', id.toString());
-        return this.http.get<JuegoResponse>(this.apiUrl, { params });
+    //Obtiene juegos activos
+    getJuegosActivos(): Observable<Juego[]> {
+        return this.http.get<ApiResponse<Juego[]>>(`${this.apiUrl}/activos`).pipe(
+            map(response => response.data || [])
+        );
     }
 
-    // Listar juegos por empresa
-    listarPorEmpresa(idEmpresa: number): Observable<JuegoResponse> {
-        const params = new HttpParams().set('idEmpresa', idEmpresa.toString());
-        return this.http.get<JuegoResponse>(this.apiUrl, { params });
+    //Obtiene juego por id
+    getJuego(idJuego: number): Observable<Juego> {
+        return this.http.get<ApiResponse<Juego>>(`${this.apiUrl}/${idJuego}`).pipe(
+            map(response => response.data as Juego)
+        );
     }
 
-    // Buscar por título
-    buscarPorTitulo(titulo: string): Observable<JuegoResponse> {
-        const params = new HttpParams().set('titulo', titulo);
-        return this.http.get<JuegoResponse>(this.apiUrl, { params });
+    //Busca juegos por titulo
+    buscarJuegos(titulo: string): Observable<Juego[]> {
+        const params = new HttpParams().set('buscar', titulo);
+        return this.http.get<ApiResponse<Juego[]>>(this.apiUrl, { params }).pipe(
+            map(response => response.data || [])
+        );
     }
 
-    // Crear juego
-    crear(juego: Juego): Observable<JuegoResponse> {
-        return this.http.post<JuegoResponse>(this.apiUrl, juego);
+    //Filtra juegos por categoria
+    getJuegosPorCategoria(idCategoria: number): Observable<Juego[]> {
+        return this.http.get<ApiResponse<Juego[]>>(
+            `${this.apiUrl}/categoria/${idCategoria}`
+        ).pipe(
+            map(response => response.data || [])
+        );
     }
 
-    // Actualizar juego
-    actualizar(juego: Juego): Observable<JuegoResponse> {
-        return this.http.put<JuegoResponse>(this.apiUrl, juego);
+    //Obtiene juegos de una empresa
+    getJuegosPorEmpresa(idEmpresa: number): Observable<Juego[]> {
+        return this.http.get<ApiResponse<Juego[]>>(
+            `${this.apiUrl}/empresa/${idEmpresa}`
+        ).pipe(
+            map(response => response.data || [])
+        );
+    }
+
+    //Crea un juego
+    crearJuego(juego: CreateJuegoRequest): Observable<ApiResponse<Juego>> {
+        return this.http.post<ApiResponse<Juego>>(this.apiUrl, juego);
+    }
+
+    //actualiza un juego
+    actualizaJuego(idJuego: number, juego: Partial<Juego>): Observable<ApiResponse<void>> {
+        return this.http.put<ApiResponse<void>>(`${this.apiUrl}/${idJuego}`, juego);
     }
 
     // Desactivar venta
-    desactivarVenta(id: number): Observable<JuegoResponse> {
+    desactivarVenta(id: number): Observable<ApiResponse<Juego>> {
         const params = new HttpParams().set('id', id.toString());
-        return this.http.delete<JuegoResponse>(this.apiUrl, { params });
+        return this.http.delete<ApiResponse<Juego>>(this.apiUrl, { params });
+    }
+    
+    //sube imagen de un juego
+    subirImagen(idJuego: number, imagen: File): Observable<ApiResponse<string>> {
+        const formData = new FormData();
+        formData.append('imagen', imagen);
+        return this.http.post<ApiResponse<string>>(
+            `${this.apiUrl}/${idJuego}/imagen`,
+            formData
+        );
+    }
+
+    //Asigna categoria a un juego
+    asignarCategorias(idJuego: number, categoriasIds: number[]): Observable<ApiResponse<void>> {
+        return this.http.post<ApiResponse<void>>(
+            `${this.apiUrl}/${idJuego}/categorias`,
+            { categoriasIds }
+        );
+    }
+
+    //Obtiene categorias de un juego
+    getCategorias(idJuego: number): Observable<Categoria[]> {
+        return this.http.get<ApiResponse<Categoria[]>>(
+            `${this.apiUrl}/${idJuego}/categorias`
+        ).pipe(
+            map(response => response.data || [])
+        );
     }
 }

@@ -21,7 +21,7 @@ export class Login {
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   onSubmit(): void {
     if (!this.correo || !this.password) {
@@ -35,15 +35,22 @@ export class Login {
     this.authService.login(this.correo, this.password).subscribe({
       next: (response) => {
         if (response.success) {
+          this.cargando = false;
           console.log('Login exitoso:', response.data);
           // Redirigir según el rol
-          this.redirigirSegunRol(response.data?.idRol);
+          if (this.authService.isAuthenticated()) {
+            const currentUser = this.authService.getCurrentUser();
+            if (currentUser) {
+              this.authService.redirectToDashboard(currentUser.idRol);
+            }
+          }
         } else {
           this.error = response.message;
         }
         this.cargando = false;
       },
       error: (err) => {
+        this.cargando = false;
         console.error('Error de login:', err);
         this.error = err.error?.message || 'Error al iniciar sesión';
         this.cargando = false;
@@ -51,19 +58,4 @@ export class Login {
     });
   }
 
-  private redirigirSegunRol(idRol?: number): void {
-    switch (idRol) {
-      case 1: // Administrador
-        this.router.navigate(['/admin/dashboard']);
-        break;
-      case 2: // Empresa
-        this.router.navigate(['/empresa/dashboard']);
-        break;
-      case 3: // Gamer
-        this.router.navigate(['/tienda']);
-        break;
-      default:
-        this.router.navigate(['/']);
-    }
-  }
 }

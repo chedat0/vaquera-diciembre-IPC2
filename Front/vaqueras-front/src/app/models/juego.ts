@@ -12,6 +12,7 @@ export interface Juego {
     categorias?: Categoria[];
     promedioCalificacion?: number;
     totalVentas?: number;
+    clasifiacionPorEdad?: string; 
 }
 
 export interface CreateJuegoRequest {
