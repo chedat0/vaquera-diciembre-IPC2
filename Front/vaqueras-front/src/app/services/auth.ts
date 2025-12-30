@@ -2,43 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { backEnd } from '../app.config';
+import { Usuario, LoginRequest, RegistroRequest } from '../models/usuario';
+import { ApiResponse,Rol } from '../models/enums';
 
 
-export interface LoginRequest {
-  correo: string;
-  password: string;
-}
-
-export interface RegistroRequest {
-  nickname: string;
-  correo: string;
-  password: string;
-  fechaNacimiento: string;
-  telefono?: string;
-  pais: string;
-  idRol: number;
-}
-
-export interface Usuario {
-  idUsuario: number;
-  nickname: string;
-  correo: string;
-  pais: string;
-  idRol: number;
-}
-
-export interface LoginResponse {
-  success: boolean;
-  message: string;
-  data: Usuario | null;
-}
-
-export interface RegistroResponse {
-  success: boolean;
-  message: string;
-  data: any;
-}
 
 @Injectable({
   providedIn: 'root',
@@ -49,35 +18,46 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private router: Router) {
     const usuarioGuardado = localStorage.getItem('usuario');
     if (usuarioGuardado) {
-      this.currentUserSubject.next(JSON.parse(usuarioGuardado));
+      try {
+        this.currentUserSubject.next(JSON.parse(usuarioGuardado));
+      } catch (error) {
+        console.error('Error al parsear usuario guardado:', error);
+        this.logout();
+      }
+      
     }  
     console.log('AuthService inicializado');
     console.log('Backend URL:', this.apiUrl);
   } 
 
-login(correo: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { correo, password })
+login(correo: string, password: string): Observable<ApiResponse<Usuario>> {
+    return this.http.post<ApiResponse<Usuario>>(`${this.apiUrl}/login`, { correo, password })
       .pipe(
         tap(response => {
           if (response.success && response.data) {
             // Guardar en localStorage
             localStorage.setItem('usuario', JSON.stringify(response.data));
             this.currentUserSubject.next(response.data);
+
+            //redirigir al dashboard correspondiente
+            this.redirectToDashboard(response.data.idRol)
           }
         })
       );
   }
 
-  registro(datos: RegistroRequest): Observable<RegistroResponse> {
-    return this.http.post<RegistroResponse>(`${this.apiUrl}/registro`, datos);
+  registro(datos: RegistroRequest): Observable<ApiResponse<Usuario>> {
+    return this.http.post<ApiResponse<Usuario>>(`${this.apiUrl}/registro`, datos);
   }
 
+  //Cierra sesion
   logout(): void {
     localStorage.removeItem('usuario');
     this.currentUserSubject.next(null);
+    this.router.navigate(['/login'])
   }
 
   isAuthenticated(): boolean {
@@ -87,6 +67,46 @@ login(correo: string, password: string): Observable<LoginResponse> {
   getCurrentUser(): Usuario | null {
     return this.currentUserSubject.value;
   }
+    
+  hasRole(rol: Rol): boolean {
+    const usuario = this.getCurrentUser();
+    return usuario !== null && usuario.idRol === rol;
+  }
   
+  hasAnyRole(roles: Rol[]): boolean {
+    const usuario = this.getCurrentUser();
+    return usuario !== null && roles.includes(usuario.idRol);
+  }
+
+  //redirige al dashboard segun el rol
+  redirectToDashboard(idRol: Rol): void {
+    switch (idRol) {
+      case Rol.ADMINISTRADOR:
+        this.router.navigate(['/admin/dashboard']);
+        break;
+      case Rol.DUENO_EMPRESA:
+        this.router.navigate(['/empresa/dashboard']);
+        break;
+      case Rol.JUGADOR:
+        this.router.navigate(['/jugador/dashboard']);
+        break;
+      default:
+        this.router.navigate(['/login']);
+    }
+  }
+
+  //obtiene rol
+  getRoleName(idRol: Rol): string {
+    switch (idRol) {
+      case Rol.ADMINISTRADOR:
+        return 'Administrador';
+      case Rol.DUENO_EMPRESA:
+        return 'Dueño de Empresa';
+      case Rol.JUGADOR:
+        return 'Jugador';
+      default:
+        return 'Usuario';
+    }
+  }
 }
 
