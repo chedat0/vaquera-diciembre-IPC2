@@ -4,6 +4,7 @@
  */
 package controlador;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import dtos.CategoriaDTO;
 import dtos.VerificadorDTO;
@@ -23,15 +24,17 @@ import java.util.List;
  * @author jeffm
  */
 
-@WebServlet("/categorias")
+@WebServlet("/categorias/*")
 public class CategoriaServlet extends HttpServlet {
     private CategoriaServicio categoriaServicio;
+    private ObjectMapper mapper;
     private Gson gson;
     
     @Override
     public void init() {
         categoriaServicio = new CategoriaServicio();
         gson = new Gson();
+        mapper = new ObjectMapper();
         System.out.println("CategoriaServlet inicializado correctamente");
     }
     
@@ -43,58 +46,34 @@ public class CategoriaServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
-            String idParam = request.getParameter("id");
-            String activasParam = request.getParameter("activas");
+            String pathInfo = request.getPathInfo();
             
-            if (idParam != null && !idParam.trim().isEmpty()) {
-                // Buscar por ID con validación
-                try {
-                    Integer id = Integer.parseInt(idParam);
+            if (pathInfo == null || pathInfo.equals("/")) {
+                // GET /categorias 
+                listarTodas(response);
+                return;
+            }
+            
+            String[] parts = pathInfo.split("/");
+            String segment1 = parts.length > 1 ? parts[1] : "";
+            
+            switch (segment1) {
+                case "activas":
+                    // GET /categorias/activas
+                    listarActivas(response);
+                    break;
                     
-                    if (id <= 0) {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser mayor a 0", null);
-                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        response.getWriter().write(gson.toJson(respuesta));
-                        return;
-                    }
-                    
-                    CategoriaDTO categoria = categoriaServicio.buscarPorId(id);
-                    
-                    if (categoria != null) {
-                        VerificadorDTO respuesta = new VerificadorDTO(true, "Categoría encontrada", categoria);
-                        response.getWriter().write(gson.toJson(respuesta));
-                    } else {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "Categoría no encontrada", null);
-                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        response.getWriter().write(gson.toJson(respuesta));
-                    }
-                    
-                } catch (NumberFormatException e) {
-                    System.err.println("Error: ID inválido - " + idParam);
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser un número válido", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(gson.toJson(respuesta));
-                }
-                
-            } else if ("true".equals(activasParam)) {
-                // Listar solo categorías activas
-                List<CategoriaDTO> categorias = categoriaServicio.listarActivas();
-                VerificadorDTO respuesta = new VerificadorDTO(true, "Categorías activas obtenidas", categorias);
-                response.getWriter().write(gson.toJson(respuesta));
-                
-            } else {
-                // Listar todas las categorías
-                List<CategoriaDTO> categorias = categoriaServicio.listarTodas();
-                VerificadorDTO respuesta = new VerificadorDTO(true, "Categorías obtenidas", categorias);
-                response.getWriter().write(gson.toJson(respuesta));
+                default:
+                    // GET /categorias/{id}
+                    buscarPorId(segment1, response);
+                    break;
             }
             
         } catch (Exception e) {
             System.err.println("Error en doGet: " + e.getMessage());
             e.printStackTrace();
-            VerificadorDTO respuesta = new VerificadorDTO(false, "Error: " + e.getMessage(), null);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(gson.toJson(respuesta));
+            enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                       "Error: " + e.getMessage());
         }
     }
     
@@ -168,6 +147,23 @@ public class CategoriaServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
+            String pathInfo = request.getPathInfo();
+            
+            if (pathInfo == null || pathInfo.equals("/")) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID es requerido en la URL");
+                return;
+            }
+            
+            String[] parts = pathInfo.split("/");
+            String idParam = parts.length > 1 ? parts[1] : "";
+            
+            Integer id;
+            try {
+                id = Integer.parseInt(idParam);
+            } catch (NumberFormatException e) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser un número válido");
+                return;
+            }
             BufferedReader reader = request.getReader();
             Categoria categoria = gson.fromJson(reader, Categoria.class);
             
@@ -229,22 +225,21 @@ public class CategoriaServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try {
-            String idParam = request.getParameter("id");
-
-            if (idParam == null || idParam.trim().isEmpty()) {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "ID es requerido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+            String pathInfo = request.getPathInfo();
+            
+            if (pathInfo == null || pathInfo.equals("/")) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID es requerido en la URL");
                 return;
             }
+            
+            String[] parts = pathInfo.split("/");
+            String idParam = parts.length > 1 ? parts[1] : "";
             
             try {
                 Integer id = Integer.parseInt(idParam);
                 
                 if (id <= 0) {
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser mayor a 0", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(gson.toJson(respuesta));
+                    enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser mayor a 0");
                     return;
                 }
 
@@ -275,4 +270,46 @@ public class CategoriaServlet extends HttpServlet {
             response.getWriter().write(gson.toJson(respuesta));
         }
     }  
+    
+    private void listarTodas(HttpServletResponse response) throws IOException {
+        List<CategoriaDTO> categorias = categoriaServicio.listarTodas();
+        VerificadorDTO respuesta = new VerificadorDTO(true, "Categorías obtenidas", categorias);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
+    
+    private void listarActivas(HttpServletResponse response) throws IOException {
+        List<CategoriaDTO> categorias = categoriaServicio.listarActivas();
+        VerificadorDTO respuesta = new VerificadorDTO(true, "Categorías activas obtenidas", categorias);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
+    
+    private void buscarPorId(String idParam, HttpServletResponse response) throws IOException {
+        try {
+            Integer id = Integer.parseInt(idParam);
+            
+            if (id <= 0) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser mayor a 0");
+                return;
+            }
+            
+            CategoriaDTO categoria = categoriaServicio.buscarPorId(id);
+            
+            if (categoria != null) {
+                VerificadorDTO respuesta = new VerificadorDTO(true, "Categoría encontrada", categoria);
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
+            } else {
+                enviarError(response, HttpServletResponse.SC_NOT_FOUND, "Categoría no encontrada");
+            }
+            
+        } catch (NumberFormatException e) {
+            enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser un número válido");
+        }
+    }
+    
+    private void enviarError(HttpServletResponse response, int status, String mensaje) 
+            throws IOException {
+        VerificadorDTO respuesta = new VerificadorDTO(false, mensaje, null);
+        response.setStatus(status);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
 }

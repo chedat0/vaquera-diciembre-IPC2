@@ -38,7 +38,7 @@ export class JuegoService {
 
     //Busca juegos por titulo
     buscarJuegos(titulo: string): Observable<Juego[]> {
-        const params = new HttpParams().set('buscar', titulo);
+        const params = new HttpParams().set('titulo', titulo);
         return this.http.get<ApiResponse<Juego[]>>(this.apiUrl, { params }).pipe(
             map(response => response.data || [])
         );
@@ -83,7 +83,7 @@ export class JuegoService {
         const formData = new FormData();
         formData.append('imagen', imagen);
         return this.http.post<ApiResponse<string>>(
-            `${this.apiUrl}/${idJuego}/imagen`,
+            `${this.apiUrl}/imagenes/juego/${idJuego}`,
             formData
         );
     }

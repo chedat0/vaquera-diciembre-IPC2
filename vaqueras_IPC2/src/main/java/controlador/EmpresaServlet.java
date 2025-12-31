@@ -5,6 +5,7 @@
 package controlador;
 
 import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dtos.EmpresaDTO;
 import dtos.VerificadorDTO;
 import com.mycompany.vaqueras_ipc2.modelo.Empresa;
@@ -21,16 +22,19 @@ import java.util.List;
  *
  * @author jeffm
  */
-@WebServlet("/empresas")
+@WebServlet("/empresas/*")
 public class EmpresaServlet extends HttpServlet{
     private EmpresaServicio empresaServicio;
+    private ObjectMapper mapper;
     private Gson gson;
     
     @Override
     public void init() {
         empresaServicio = new EmpresaServicio();
         gson = new Gson();
+        mapper = new ObjectMapper();        
         System.out.println("EmpresaServlet inicializado correctamente");
+        
     }
     
     @Override
@@ -42,58 +46,37 @@ public class EmpresaServlet extends HttpServlet{
         
         try {
             String idParam = request.getParameter("id");
-            String nombreParam = request.getParameter("nombre");
+            String nombreParam = request.getParameter("nombre");                        
+            String pathInfo = request.getPathInfo();
             
-            if (idParam != null && !idParam.trim().isEmpty()) {
-                // Buscar por ID con validación
-                try {
-                    Integer id = Integer.parseInt(idParam);
-                    
-                    if (id <= 0) {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser mayor a 0", null);
-                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        response.getWriter().write(gson.toJson(respuesta));
-                        return;
-                    }
-                    
-                    EmpresaDTO empresa = empresaServicio.buscarPorId(id);
-                    
-                    if (empresa != null) {
-                        VerificadorDTO respuesta = new VerificadorDTO(true, "Empresa encontrada", empresa);
-                        response.getWriter().write(gson.toJson(respuesta));
-                    } else {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "Empresa no encontrada", null);
-                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        response.getWriter().write(gson.toJson(respuesta));
-                    }
-                    
-                } catch (NumberFormatException e) {
-                    System.err.println("✗ Error: ID inválido - " + idParam);
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser un número válido", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(gson.toJson(respuesta));
-                }
-                
-            } else if (nombreParam != null && !nombreParam.trim().isEmpty()) {
-                // Buscar por nombre
-                List<EmpresaDTO> empresas = empresaServicio.buscarPorNombre(nombreParam);
-                VerificadorDTO respuesta = new VerificadorDTO(true, "Búsqueda completada", empresas);
-                response.getWriter().write(gson.toJson(respuesta));
-                
-            } else {
-                // Listar todas
+            if (pathInfo == null || pathInfo.equals("/")) {
+                // GET /empresas → Listar todas
                 List<EmpresaDTO> empresas = empresaServicio.listarTodas();
-                VerificadorDTO respuesta = new VerificadorDTO(true, "Empresas obtenidas", empresas);
-                response.getWriter().write(gson.toJson(respuesta));
+                return;
+            }
+            
+            String[] parts = pathInfo.split("/");
+            String segment1 = parts.length > 1 ? parts[1] : "";
+            
+            switch (segment1) {
+                case "nombre":
+                    // GET /empresas/activas → Listar solo activas
+                    List<EmpresaDTO> empresas = empresaServicio.buscarPorNombre(nombreParam);
+                    break;
+                    
+                default:
+                    // GET /empresas/{id} → Buscar por ID
+                    EmpresaDTO empresa = empresaServicio.buscarPorId(Integer.BYTES);
+                    break;
             }
             
         } catch (Exception e) {
             System.err.println("Error en doGet: " + e.getMessage());
             e.printStackTrace();
-            VerificadorDTO respuesta = new VerificadorDTO(false, "Error: " + e.getMessage(), null);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(gson.toJson(respuesta));
+            enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                       "Error: " + e.getMessage());
         }
+    
     }
     
     @Override
@@ -166,16 +149,27 @@ public class EmpresaServlet extends HttpServlet{
         response.setCharacterEncoding("UTF-8");
         
         try {
-            BufferedReader reader = request.getReader();
-            Empresa empresa = gson.fromJson(reader, Empresa.class);
+            String pathInfo = request.getPathInfo();
             
-            // Validaciones
-            if (empresa == null || empresa.getIdEmpresa() == null) {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "ID de empresa requerido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+            if (pathInfo == null || pathInfo.equals("/")) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID es requerido en la URL");
                 return;
             }
+            
+            String[] parts = pathInfo.split("/");
+            String idParam = parts.length > 1 ? parts[1] : "";
+            
+            Integer id;
+            try {
+                id = Integer.parseInt(idParam);
+            } catch (NumberFormatException e) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser un número válido");
+                return;
+            }
+            
+            BufferedReader reader = request.getReader();
+            Empresa empresa = gson.fromJson(reader, Empresa.class);
+                       
             
             if (empresa.getNombre() == null || empresa.getNombre().trim().isEmpty()) {
                 VerificadorDTO respuesta = new VerificadorDTO(false, "El nombre es requerido", null);
@@ -220,22 +214,21 @@ public class EmpresaServlet extends HttpServlet{
         response.setCharacterEncoding("UTF-8");
         
         try {
-            String idParam = request.getParameter("id");
-            
-            if (idParam == null || idParam.trim().isEmpty()) {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "ID es requerido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(gson.toJson(respuesta));
+            String pathInfo = request.getPathInfo();
+
+            if (pathInfo == null || pathInfo.equals("/")) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID es requerido en la URL");
                 return;
             }
-            
+
+            String[] parts = pathInfo.split("/");
+            String idParam = parts.length > 1 ? parts[1] : "";
+
             try {
                 Integer id = Integer.parseInt(idParam);
-                
+
                 if (id <= 0) {
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser mayor a 0", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(gson.toJson(respuesta));
+                    enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser mayor a 0");
                     return;
                 }
                 
@@ -266,4 +259,34 @@ public class EmpresaServlet extends HttpServlet{
             response.getWriter().write(gson.toJson(respuesta));
         }
     }        
+    
+    private void buscarPorId(String idParam, HttpServletResponse response) throws IOException {
+        try {
+            Integer id = Integer.parseInt(idParam);
+            
+            if (id <= 0) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser mayor a 0");
+                return;
+            }
+            
+            EmpresaDTO empresa = empresaServicio.buscarPorId(id);
+            
+            if (empresa != null) {
+                VerificadorDTO respuesta = new VerificadorDTO(true, "Empresa encontrada", empresa);
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
+            } else {
+                enviarError(response, HttpServletResponse.SC_NOT_FOUND, "Empresa no encontrada");
+            }
+            
+        } catch (NumberFormatException e) {
+            enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "ID debe ser un número válido");
+        }
+    }
+    
+    private void enviarError(HttpServletResponse response, int status, String mensaje) 
+            throws IOException {
+        VerificadorDTO respuesta = new VerificadorDTO(false, mensaje, null);
+        response.setStatus(status);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
 }

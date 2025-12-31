@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { JuegoService } from '../../services/juego';
-import { Juego } from '../../models/juego';
-import { LicenciaService } from '../../services/licencia';
-import { EdadInfoService } from '../../services/edad_info';
-import { AuthService } from '../../services/auth';
-import { Usuario } from '../../models/usuario';
-import { CompraJuegoRequest } from '../../models/licencia';
-import { Categoria } from '../../models/categoria';
+import { JuegoService } from '../../../services/juego';
+import { Juego } from '../../../models/juego';
+import { LicenciaService } from '../../../services/licencia';
+import { EdadInfoService } from '../../../services/edad_info';
+import { AuthService } from '../../../services/auth';
+import { Usuario } from '../../../models/usuario';
+import { CompraJuegoRequest } from '../../../models/licencia';
+import { Categoria } from '../../../models/categoria';
 
 
 @Component({

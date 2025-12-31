@@ -23,7 +23,7 @@ import java.util.List;
  * @author jeffm
  */
 
-@WebServlet("/juegos")
+@WebServlet("/juegos/*")
 public class JuegoServlet extends HttpServlet {    
     private JuegoServicio juegoServicio;
     private ObjectMapper mapper;
@@ -43,82 +43,56 @@ public class JuegoServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
-            String idParam = request.getParameter("id");
-            String empresaParam = request.getParameter("idEmpresa");
-            String tituloParam = request.getParameter("titulo");
-            
-            if (idParam != null && !idParam.trim().isEmpty()) {
-                // Buscar por ID con validación
-                try {
-                    Integer id = Integer.parseInt(idParam);
-                    
-                    if (id <= 0) {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser mayor a 0", null);
-                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        response.getWriter().write(mapper.writeValueAsString(respuesta));
-                        return;
-                    }
-                    
-                    JuegoDTO juego = juegoServicio.buscarPorId(id);
-                    
-                    if (juego != null) {
-                        VerificadorDTO respuesta = new VerificadorDTO(true, "Juego encontrado", juego);
-                        response.getWriter().write(mapper.writeValueAsString(respuesta));
-                    } else {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "Juego no encontrado", null);
-                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        response.getWriter().write(mapper.writeValueAsString(respuesta));
-                    }
-                    
-                } catch (NumberFormatException e) {
-                    System.err.println("Error: ID inválido - " + idParam);
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser un número válido", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(mapper.writeValueAsString(respuesta));
+            // Obtener la ruta después de /juegos
+            String pathInfo = request.getPathInfo();
+          
+            if (pathInfo == null || pathInfo.equals("/")) {
+                // Verificar si hay parámetros de búsqueda
+                String tituloParam = request.getParameter("titulo");
+
+                if (tituloParam != null && !tituloParam.trim().isEmpty()) {
+                    // GET /juegos?titulo
+                    buscarPorTitulo(tituloParam, response);
+                } else {                    
+                    listarTodos(response);
                 }
-                
-            } else if (empresaParam != null && !empresaParam.trim().isEmpty()) {
-                // Listar por empresa con validación
-                try {
-                    Integer idEmpresa = Integer.parseInt(empresaParam);
-                    
-                    if (idEmpresa <= 0) {
-                        VerificadorDTO respuesta = new VerificadorDTO(false, "ID de empresa debe ser mayor a 0", null);
-                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        response.getWriter().write(mapper.writeValueAsString(respuesta));
-                        return;
-                    }
-                    
-                    List<JuegoDTO> juegos = juegoServicio.listarPorEmpresa(idEmpresa);
-                    VerificadorDTO respuesta = new VerificadorDTO(true, "Juegos obtenidos", juegos);
-                    response.getWriter().write(mapper.writeValueAsString(respuesta));
-                    
-                } catch (NumberFormatException e) {
-                    System.err.println("Error: ID de empresa inválido - " + empresaParam);
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID de empresa debe ser un número válido", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(mapper.writeValueAsString(respuesta));
-                }
-                
-            } else if (tituloParam != null && !tituloParam.trim().isEmpty()) {
-                // Buscar por título
-                List<JuegoDTO> juegos = juegoServicio.buscarPorTitulo(tituloParam);
-                VerificadorDTO respuesta = new VerificadorDTO(true, "Búsqueda completada", juegos);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
-                
-            } else {
-                // Listar todos
-                List<JuegoDTO> juegos = juegoServicio.listarTodos();
-                VerificadorDTO respuesta = new VerificadorDTO(true, "Juegos obtenidos", juegos);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
+                return;
             }
+
+            // Parsear la ruta
+            String[] parts = pathInfo.split("/");
             
+            String s1 = parts.length > 1 ? parts[1] : "";
+            String s2 = parts.length > 2 ? parts[2] : "";
+
+            // Manejar rutas específicas
+            switch (s1) {
+                case "activos":
+                    // GET /juegos/activos → Listar solo activos
+                    listarActivos(response);
+                    break;
+
+                case "empresa":
+                    // GET /juegos/empresa/{id} → Listar por empresa
+                    if (s2.isEmpty()) {
+                        enviarError(response, HttpServletResponse.SC_BAD_REQUEST,
+                                "ID de empresa es requerido");
+                    } else {
+                        listarPorEmpresa(s2, response);
+                    }
+                    break;
+
+                default:
+                    // GET /juegos/{id} → Buscar por ID
+                    buscarPorId(s1, response);
+                    break;
+            }
+
         } catch (Exception e) {
             System.err.println("Error en doGet: " + e.getMessage());
             e.printStackTrace();
-            VerificadorDTO respuesta = new VerificadorDTO(false, "Error: " + e.getMessage(), null);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(mapper.writeValueAsString(respuesta));
+            enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Error: " + e.getMessage());
         }
     }
     
@@ -206,21 +180,42 @@ public class JuegoServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
-            BufferedReader reader = request.getReader();
-            Juego juego = mapper.readValue(request.getReader(), Juego.class);
+            // Obtener ID de la ruta: PUT /juegos/{id}
+            String pathInfo = request.getPathInfo();
             
-            // Validaciones
-            if (juego == null || juego.getIdJuego() == null) {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "ID de juego es requerido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
+            if (pathInfo == null || pathInfo.equals("/")) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID de juego es requerido en la URL");
                 return;
             }
             
+            String[] parts = pathInfo.split("/");
+            String idParam = parts.length > 1 ? parts[1] : "";
+            
+            if (idParam.isEmpty()) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID de juego es requerido");
+                return;
+            }
+            
+            Integer id;
+            try {
+                id = Integer.parseInt(idParam);
+            } catch (NumberFormatException e) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID debe ser un número válido");
+                return;
+            }
+            
+            BufferedReader reader = request.getReader();
+            Juego juego = mapper.readValue(reader, Juego.class);
+            
+            // Asegurar que el ID del cuerpo coincida con el de la URL
+            juego.setIdJuego(id);
+            
             if (juego.getTitulo() == null || juego.getTitulo().trim().isEmpty()) {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "El título es requerido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "El título es requerido");
                 return;
             }
             
@@ -232,23 +227,19 @@ public class JuegoServlet extends HttpServlet {
                 VerificadorDTO respuesta = new VerificadorDTO(true, "Juego actualizado exitosamente", null);
                 response.getWriter().write(mapper.writeValueAsString(respuesta));
             } else {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "Error al actualizar juego", null);
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
+                enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                           "Error al actualizar juego");
             }
             
         } catch (com.fasterxml.jackson.core.JsonParseException e) {
             System.err.println("Error: JSON inválido - " + e.getMessage());
-            VerificadorDTO respuesta = new VerificadorDTO(false, "Formato JSON inválido", null);
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write(mapper.writeValueAsString(respuesta));
+            enviarError(response, HttpServletResponse.SC_BAD_REQUEST, "Formato JSON inválido");
             
         } catch (Exception e) {
             System.err.println("Error en doPut: " + e.getMessage());
             e.printStackTrace();
-            VerificadorDTO respuesta = new VerificadorDTO(false, "Error: " + e.getMessage(), null);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(mapper.writeValueAsString(respuesta));
+            enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                       "Error: " + e.getMessage());
         }
     }
     
@@ -260,12 +251,21 @@ public class JuegoServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         
         try {
-            String idParam = request.getParameter("id");
+            // /juegos/{id}
+            String pathInfo = request.getPathInfo();
             
-            if (idParam == null || idParam.trim().isEmpty()) {
-                VerificadorDTO respuesta = new VerificadorDTO(false, "ID es requerido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
+            if (pathInfo == null || pathInfo.equals("/")) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID de juego es requerido en la URL");
+                return;
+            }
+            
+            String[] parts = pathInfo.split("/");
+            String idParam = parts.length > 1 ? parts[1] : "";
+            
+            if (idParam.isEmpty()) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID de juego es requerido");
                 return;
             }
             
@@ -273,9 +273,8 @@ public class JuegoServlet extends HttpServlet {
                 Integer id = Integer.parseInt(idParam);
                 
                 if (id <= 0) {
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser mayor a 0", null);
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    response.getWriter().write(mapper.writeValueAsString(respuesta));
+                    enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                               "ID debe ser mayor a 0");
                     return;
                 }
                 
@@ -287,24 +286,96 @@ public class JuegoServlet extends HttpServlet {
                     VerificadorDTO respuesta = new VerificadorDTO(true, "Venta desactivada exitosamente", null);
                     response.getWriter().write(mapper.writeValueAsString(respuesta));
                 } else {
-                    VerificadorDTO respuesta = new VerificadorDTO(false, "Error al desactivar venta", null);
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    response.getWriter().write(mapper.writeValueAsString(respuesta));
+                    enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                               "Error al desactivar venta");
                 }
                 
             } catch (NumberFormatException e) {
                 System.err.println("Error: ID inválido - " + idParam);
-                VerificadorDTO respuesta = new VerificadorDTO(false, "ID debe ser un número válido", null);
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write(mapper.writeValueAsString(respuesta));
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID debe ser un número válido");
             }
             
         } catch (Exception e) {
             System.err.println("Error en doDelete: " + e.getMessage());
             e.printStackTrace();
-            VerificadorDTO respuesta = new VerificadorDTO(false, "Error: " + e.getMessage(), null);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(mapper.writeValueAsString(respuesta));
+            enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                       "Error: " + e.getMessage());
         }
     }        
+    
+    private void listarTodos(HttpServletResponse response) throws IOException {
+        List<JuegoDTO> juegos = juegoServicio.listarTodos();
+        VerificadorDTO respuesta = new VerificadorDTO(true, "Juegos obtenidos", juegos);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
+    
+    /**
+     * GET /juegos/activos → Listar solo juegos activos
+     */
+    private void listarActivos(HttpServletResponse response) throws IOException {
+        List<JuegoDTO> juegos = juegoServicio.listarActivos();
+        VerificadorDTO respuesta = new VerificadorDTO(true, "Juegos activos obtenidos", juegos);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
+       
+    private void buscarPorId(String idParam, HttpServletResponse response) throws IOException {
+        try {
+            Integer id = Integer.parseInt(idParam);
+            
+            if (id <= 0) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID debe ser mayor a 0");
+                return;
+            }
+            
+            JuegoDTO juego = juegoServicio.buscarPorId(id);
+            
+            if (juego != null) {
+                VerificadorDTO respuesta = new VerificadorDTO(true, "Juego encontrado", juego);
+                response.getWriter().write(mapper.writeValueAsString(respuesta));
+            } else {
+                enviarError(response, HttpServletResponse.SC_NOT_FOUND, "Juego no encontrado");
+            }
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Error: ID inválido - " + idParam);
+            enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                       "ID debe ser un número válido");
+        }
+    }
+      
+    private void listarPorEmpresa(String idParam, HttpServletResponse response) throws IOException {
+        try {
+            Integer idEmpresa = Integer.parseInt(idParam);
+            
+            if (idEmpresa <= 0) {
+                enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                           "ID de empresa debe ser mayor a 0");
+                return;
+            }
+            
+            List<JuegoDTO> juegos = juegoServicio.listarPorEmpresa(idEmpresa);
+            VerificadorDTO respuesta = new VerificadorDTO(true, "Juegos obtenidos", juegos);
+            response.getWriter().write(mapper.writeValueAsString(respuesta));
+            
+        } catch (NumberFormatException e) {
+            System.err.println("Error: ID de empresa inválido - " + idParam);
+            enviarError(response, HttpServletResponse.SC_BAD_REQUEST, 
+                       "ID de empresa debe ser un número válido");
+        }
+    }
+    
+    private void buscarPorTitulo(String titulo, HttpServletResponse response) throws IOException {
+        List<JuegoDTO> juegos = juegoServicio.buscarPorTitulo(titulo);
+        VerificadorDTO respuesta = new VerificadorDTO(true, "Búsqueda completada", juegos);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
+    
+    private void enviarError(HttpServletResponse response, int status, String mensaje) 
+            throws IOException {
+        VerificadorDTO respuesta = new VerificadorDTO(false, mensaje, null);
+        response.setStatus(status);
+        response.getWriter().write(mapper.writeValueAsString(respuesta));
+    }
 }

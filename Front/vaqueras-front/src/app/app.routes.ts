@@ -10,6 +10,11 @@ export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
     { path: 'login', component: Login },
     { path: 'registro', component: Registro },
+    {
+                path: 'jugador/tienda',
+                loadComponent: () => import('./components/jugador/tienda/tienda')
+                    .then(m => m.Tienda)
+            }
 
     /*
     {
