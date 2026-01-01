@@ -1,0 +1,97 @@
+<div class="reportes-container">
+    <div class="header">
+        <h1>📊 Reportes Administrativos</h1>
+        <p>Genere reportes en PDF sobre el rendimiento de la plataforma</p>
+    </div>
+
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <!-- Filtro de fechas global -->
+    <div class="filtro-fechas-global">
+        <h3>📅 Filtro de Fechas (para reportes con rango)</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Fecha Inicio:</label>
+                <input type="date" class="form-control" [(ngModel)]="filtroFechas.fechaInicio"
+                    [disabled]="procesando" />
+            </div>
+            <div class="form-group">
+                <label>Fecha Fin:</label>
+                <input type="date" class="form-control" [(ngModel)]="filtroFechas.fechaFin" [disabled]="procesando" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid de reportes -->
+    <div class="reportes-grid">
+
+        <!-- R1: Ganancias Globales -->
+        <div class="reporte-card">
+            <div class="reporte-icon">💰</div>
+            <h3>Ganancias Globales</h3>
+            <p>Reporte de ganancias totales de la plataforma en un período específico.</p>
+            <div class="reporte-info">
+                <span class="tag">Requiere fechas</span>
+            </div>
+            <button class="btn btn-primary" (click)="generarGananciasGlobales()" [disabled]="procesando">
+                <span *ngIf="!procesando">📄 Generar PDF</span>
+                <span *ngIf="procesando">⏳ Generando...</span>
+            </button>
+        </div>
+
+        <!-- R2: Top Ventas por Categoría -->
+        <div class="reporte-card">
+            <div class="reporte-icon">📈</div>
+            <h3>Top Ventas por Categoría</h3>
+            <p>Ranking de ventas agrupadas por categoría de juegos en un período.</p>
+            <div class="reporte-info">
+                <span class="tag">Requiere fechas</span>
+            </div>
+            <button class="btn btn-primary" (click)="generarTopVentasCategoria()" [disabled]="procesando">
+                <span *ngIf="!procesando">📄 Generar PDF</span>
+                <span *ngIf="procesando">⏳ Generando...</span>
+            </button>
+        </div>
+
+        <!-- R3: Top 10 Juegos -->
+        <div class="reporte-card">
+            <div class="reporte-icon">🏆</div>
+            <h3>Top 10 Juegos Más Vendidos</h3>
+            <p>Los 10 juegos con más ventas de todos los tiempos en la plataforma.</p>
+            <div class="reporte-info">
+                <span class="tag tag-instant">Instantáneo</span>
+            </div>
+            <button class="btn btn-primary" (click)="generarTop10Juegos()" [disabled]="procesando">
+                <span *ngIf="!procesando">📄 Generar PDF</span>
+                <span *ngIf="procesando">⏳ Generando...</span>
+            </button>
+        </div>
+
+        <!-- R4: Ranking de Usuarios -->
+        <div class="reporte-card">
+            <div class="reporte-icon">👥</div>
+            <h3>Ranking de Usuarios por Gasto</h3>
+            <p>Listado de usuarios ordenados por su gasto total en la plataforma.</p>
+            <div class="reporte-info">
+                <span class="tag tag-instant">Instantáneo</span>
+            </div>
+            <button class="btn btn-primary" (click)="generarRankingUsuarios()" [disabled]="procesando">
+                <span *ngIf="!procesando">📄 Generar PDF</span>
+                <span *ngIf="procesando">⏳ Generando...</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="info-section">
+        <h3>ℹ️ Información sobre Reportes</h3>
+        <ul>
+            <li><strong>Reportes con fechas:</strong> Requieren seleccionar un rango de fechas válido</li>
+            <li><strong>Reportes instantáneos:</strong> Se generan con datos actuales, sin necesidad de filtros</li>
+            <li><strong>Formato:</strong> Todos los reportes se generan en formato PDF</li>
+            <li><strong>Visualización:</strong> Los reportes se abren automáticamente en una nueva pestaña</li>
+        </ul>
+    </div>
+</div>

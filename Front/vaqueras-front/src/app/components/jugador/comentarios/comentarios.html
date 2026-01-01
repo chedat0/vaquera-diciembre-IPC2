@@ -1,0 +1,216 @@
+<div class="comentarios-container">
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <!-- Header con promedio -->
+    <div class="comentarios-header">
+        <h2>💬 Comentarios y Valoraciones</h2>
+
+        <div *ngIf="promedio" class="promedio-section">
+            <div class="promedio-estrellas">
+                <span class="promedio-numero">{{ promedio.promedioCalificacion.toFixed(1) }}</span>
+                <div class="estrellas-grandes">
+                    <span *ngFor="let estrella of getEstrellas(Math.round(promedio.promedioCalificacion))"
+                        class="estrella-grande">
+                        {{ estrella }}
+                    </span>
+                </div>
+            </div>
+            <div class="promedio-info">
+                <p>Basado en {{ promedio.totalComentarios }} valoración(es)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón crear comentario -->
+    <div class="crear-comentario-section" *ngIf="tieneLicencia && !mostrarFormularioComentario">
+        <button class="btn btn-primary" (click)="abrirFormularioComentario()">
+            ✍️ Escribir Valoración
+        </button>
+    </div>
+
+    <!-- Mensaje si no tiene licencia -->
+    <div class="sin-licencia" *ngIf="!tieneLicencia">
+        <p>💡 Debes poseer este juego para poder comentar y valorarlo</p>
+    </div>
+
+    <!-- Formulario nuevo comentario -->
+    <div class="formulario-comentario" *ngIf="mostrarFormularioComentario">
+        <h3>Nueva Valoración</h3>
+
+        <div class="form-group">
+            <label>Tu calificación:</label>
+            <div class="selector-estrellas">
+                <button *ngFor="let num of [1,2,3,4,5]" class="btn-estrella"
+                    [class.seleccionada]="nuevoComentario.calificacion >= num"
+                    (click)="nuevoComentario.calificacion = num" type="button">
+                    {{ nuevoComentario.calificacion >= num ? '★' : '☆' }}
+                </button>
+                <span class="calificacion-texto">{{ nuevoComentario.calificacion }} estrella(s)</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Tu comentario:</label>
+            <textarea class="form-control" [(ngModel)]="nuevoComentario.contenido"
+                placeholder="Escribe tu opinión sobre este juego..." rows="4" [disabled]="procesando"></textarea>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-secondary" (click)="cancelarComentario()" [disabled]="procesando">
+                Cancelar
+            </button>
+            <button class="btn btn-primary" (click)="crearComentario()" [disabled]="procesando">
+                <span *ngIf="!procesando">Publicar Valoración</span>
+                <span *ngIf="procesando">Publicando...</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading">
+        Cargando comentarios...
+    </div>
+
+    <!-- Lista de comentarios -->
+    <div class="comentarios-lista" *ngIf="!cargando">
+
+        <!-- Empty state -->
+        <div *ngIf="comentarios.length === 0" class="empty-state">
+            <div class="empty-icon">💭</div>
+            <p>No hay comentarios aún</p>
+            <small>Sé el primero en valorar este juego</small>
+        </div>
+
+        <!-- Comentarios -->
+        <div *ngFor="let comentario of comentarios" class="comentario-item">
+
+            <!-- Header del comentario -->
+            <div class="comentario-header">
+                <div class="comentario-autor">
+                    <div class="autor-avatar">{{ (comentario.nombreUsuario?.charAt(0) ?? '').toUpperCase() }}</div>
+                    <div class="autor-info">
+                        <strong>{{ comentario.nombreUsuario }}</strong>
+                        <span class="comentario-fecha">{{ formatearFecha(comentario.fecha) }}</span>
+                    </div>
+                </div>
+
+                <div class="comentario-calificacion">
+                    <span *ngFor="let estrella of getEstrellas(comentario.calificacion)" class="estrella">
+                        {{ estrella }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Contenido del comentario -->
+            <div class="comentario-contenido">
+                <!-- Modo lectura -->
+                <p *ngIf="!editandoComentario[comentario.idComentario!]">
+                    {{ comentario.contenido }}
+                </p>
+
+                <!-- Modo edición -->
+                <div *ngIf="editandoComentario[comentario.idComentario!]" class="form-edicion">
+                    <textarea class="form-control" [(ngModel)]="contenidoEditado[comentario.idComentario!]" rows="3"
+                        [disabled]="procesando"></textarea>
+                    <div class="form-actions-inline">
+                        <button class="btn btn-sm btn-secondary"
+                            (click)="cancelarEdicionComentario(comentario.idComentario!)" [disabled]="procesando">
+                            Cancelar
+                        </button>
+                        <button class="btn btn-sm btn-primary" (click)="guardarEdicionComentario(comentario)"
+                            [disabled]="procesando">
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones del comentario -->
+            <div class="comentario-acciones">
+                <button class="btn-accion" (click)="toggleRespuestas(comentario.idComentario!)">
+                    💬 {{ comentario.cantidadRespuestas || 0 }} respuesta(s)
+                </button>
+
+                <button *ngIf="esAutor(comentario.idUsuario) && !editandoComentario[comentario.idComentario!]"
+                    class="btn-accion" (click)="iniciarEdicionComentario(comentario)">
+                    ✏️ Editar
+                </button>
+
+                <button *ngIf="esAutor(comentario.idUsuario)" class="btn-accion text-danger"
+                    (click)="eliminarComentario(comentario)">
+                    🗑️ Eliminar
+                </button>
+            </div>
+
+            <!-- Respuestas -->
+            <div class="respuestas-section" *ngIf="comentarioExpandido[comentario.idComentario!]">
+
+                <!-- Formulario nueva respuesta -->
+                <div class="formulario-respuesta" *ngIf="tieneLicencia">
+                    <textarea class="form-control" [(ngModel)]="nuevaRespuesta[comentario.idComentario!]"
+                        placeholder="Escribe una respuesta..." rows="2" [disabled]="procesando"></textarea>
+                    <button class="btn btn-sm btn-primary" (click)="crearRespuesta(comentario)" [disabled]="procesando">
+                        Responder
+                    </button>
+                </div>
+
+                <!-- Lista de respuestas -->
+                <div class="respuestas-lista" *ngIf="comentario.respuestas && comentario.respuestas.length > 0">
+                    <div *ngFor="let respuesta of comentario.respuestas" class="respuesta-item">
+
+                        <div class="respuesta-header">
+                            <div class="respuesta-autor">
+                                <div class="autor-avatar-small">{{ (respuesta.nombreUsuario?.charAt(0) ?? '').toUpperCase()}}
+                                </div>
+                                <div class="autor-info-small">
+                                    <strong>{{ respuesta.nombreUsuario }}</strong>
+                                    <span class="respuesta-fecha">{{ formatearFecha(respuesta.fecha) }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="respuesta-contenido">
+                            <!-- Modo lectura -->
+                            <p *ngIf="!editandoRespuesta[respuesta.idRespuesta!]">
+                                {{ respuesta.contenido }}
+                            </p>
+
+                            <!-- Modo edición -->
+                            <div *ngIf="editandoRespuesta[respuesta.idRespuesta!]" class="form-edicion">
+                                <textarea class="form-control" [(ngModel)]="contenidoEditado[respuesta.idRespuesta!]"
+                                    rows="2" [disabled]="procesando"></textarea>
+                                <div class="form-actions-inline">
+                                    <button class="btn btn-sm btn-secondary"
+                                        (click)="cancelarEdicionRespuesta(respuesta.idRespuesta!)"
+                                        [disabled]="procesando">
+                                        Cancelar
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" (click)="guardarEdicionRespuesta(respuesta)"
+                                        [disabled]="procesando">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="respuesta-acciones" *ngIf="esAutor(respuesta.idUsuario)">
+                            <button *ngIf="!editandoRespuesta[respuesta.idRespuesta!]" class="btn-accion-small"
+                                (click)="iniciarEdicionRespuesta(respuesta)">
+                                ✏️ Editar
+                            </button>
+                            <button class="btn-accion-small text-danger" (click)="eliminarRespuesta(respuesta)">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="!comentario.respuestas || comentario.respuestas.length === 0" class="sin-respuestas">
+                    <p>No hay respuestas aún</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

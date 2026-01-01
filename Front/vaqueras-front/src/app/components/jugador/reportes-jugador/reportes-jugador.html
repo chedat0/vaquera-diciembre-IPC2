@@ -1,0 +1,65 @@
+<div class="reportes-container">
+    <div class="header">
+        <h1>📊 Mis Reportes</h1>
+        <p>{{ filtroUsuario.usuarioNickname }}</p>
+    </div>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <div class="filtro-fechas-global">
+        <h3>📅 Filtro de Fechas (para Historial de Gastos)</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Fecha Inicio:</label>
+                <input type="date" class="form-control" [(ngModel)]="filtroUsuario.fechaInicio"
+                    [disabled]="procesando" />
+            </div>
+            <div class="form-group">
+                <label>Fecha Fin:</label>
+                <input type="date" class="form-control" [(ngModel)]="filtroUsuario.fechaFin" [disabled]="procesando" />
+            </div>
+        </div>
+    </div>
+
+    <div class="reportes-grid">
+        <div class="reporte-card">
+            <div class="reporte-icon">💸</div>
+            <h3>Historial de Gastos</h3>
+            <p>Detalle de todas tus compras y recargas en un período específico.</p>
+            <span class="tag">Requiere fechas</span>
+            <button class="btn btn-primary" (click)="generarHistorialGastos()" [disabled]="procesando">
+                {{ procesando ? '⏳ Generando...' : '📄 Generar PDF' }}
+            </button>
+        </div>
+
+        <div class="reporte-card">
+            <div class="reporte-icon">📚</div>
+            <h3>Análisis de Biblioteca</h3>
+            <p>Resumen completo de tu biblioteca de juegos con estadísticas.</p>
+            <span class="tag tag-instant">Instantáneo</span>
+            <button class="btn btn-primary" (click)="generarAnalisisBiblioteca()" [disabled]="procesando">
+                {{ procesando ? '⏳ Generando...' : '📄 Generar PDF' }}
+            </button>
+        </div>
+
+        <div class="reporte-card">
+            <div class="reporte-icon">👨‍👩‍👧‍👦</div>
+            <h3>Biblioteca Familiar</h3>
+            <p>Reporte del uso de biblioteca familiar y juegos compartidos.</p>
+            <span class="tag tag-instant">Instantáneo</span>
+            <button class="btn btn-primary" (click)="generarBibliotecaFamiliar()" [disabled]="procesando">
+                {{ procesando ? '⏳ Generando...' : '📄 Generar PDF' }}
+            </button>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h3>ℹ️ Información</h3>
+        <ul>
+            <li>Los reportes se generan en formato PDF</li>
+            <li>Se abren automáticamente en una nueva pestaña</li>
+            <li>Puedes descargarlos o imprimirlos desde el visor de PDF</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,196 @@
+<div class="grupos-container">
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Grupos Familiares</h1>
+        <button class="btn btn-primary" (click)="abrirModalNuevoGrupo()">
+            + Crear Grupo
+        </button>
+    </div>
+
+    <!-- Invitaciones Pendientes -->
+    <div *ngIf="invitacionesPendientes.length > 0" class="invitaciones-section">
+        <h2>📩 Invitaciones Pendientes ({{ invitacionesPendientes.length }})</h2>
+        <div class="invitaciones-grid">
+            <div *ngFor="let inv of invitacionesPendientes" class="invitacion-card">
+                <div class="inv-info">
+                    <strong>{{ inv.nombreGrupo }}</strong>
+                    <p>Invitado por: {{ inv.nombreInvitador }}</p>
+                    <small>{{ inv.fechaInvitacion }}</small>
+                </div>
+                <div class="inv-acciones">
+                    <button class="btn btn-success" (click)="aceptarInvitacion(inv)">
+                        Aceptar
+                    </button>
+                    <button class="btn btn-danger" (click)="rechazarInvitacion(inv)">
+                        Rechazar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="main-content">
+        <!-- Lista de Grupos -->
+        <div class="grupos-lista">
+            <h2>Mis Grupos</h2>
+
+            <div *ngIf="cargando" class="loading">Cargando...</div>
+
+            <div *ngIf="!cargando && misGrupos.length === 0" class="empty-state">
+                <p>No tienes grupos aún. ¡Crea uno o acepta una invitación!</p>
+            </div>
+
+            <div class="grupos-grid">
+                <div *ngFor="let grupo of misGrupos" class="grupo-card"
+                    [class.selected]="grupoSeleccionado?.idGrupo === grupo.idGrupo" (click)="seleccionarGrupo(grupo)">
+                    <div class="grupo-header">
+                        <h3>{{ grupo.nombre }}</h3>
+                        <span class="badge" *ngIf="esCreador(grupo)">Creador</span>
+                    </div>
+                    <div class="grupo-info">
+                        <p><strong>Creador:</strong> {{ grupo.nombreCreador }}</p>
+                        <p><strong>Miembros:</strong> {{ grupo.cantidadMiembros }}/6</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalles del Grupo Seleccionado -->
+        <div class="grupo-detalles" *ngIf="grupoSeleccionado">
+            <div class="detalles-header">
+                <h2>{{ grupoSeleccionado.nombre }}</h2>
+                <div class="acciones">
+                    <button *ngIf="esMiCreador()" class="btn btn-primary" (click)="abrirModalInvitar()">
+                        + Invitar Miembro
+                    </button>
+                    <button *ngIf="!esMiCreador()" class="btn btn-warning" (click)="salirDelGrupo()">
+                        Salir del Grupo
+                    </button>
+                    <button *ngIf="esMiCreador()" class="btn btn-danger" (click)="eliminarGrupo()">
+                        Eliminar Grupo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Miembros -->
+            <div class="miembros-section">
+                <h3>Miembros ({{ miembrosGrupo.length }}/6)</h3>
+
+                <div *ngIf="cargandoMiembros" class="loading">Cargando miembros...</div>
+
+                <div class="miembros-lista">
+                    <div *ngFor="let miembro of miembrosGrupo" class="miembro-item">
+                        <div class="miembro-info">
+                            <span class="miembro-icon">👤</span>
+                            <div>
+                                <strong>{{ miembro.nickname }}</strong>
+                                <span class="badge badge-sm" *ngIf="miembro.rol === 'CREADOR'">
+                                    Creador
+                                </span>
+                            </div>
+                        </div>
+                        <button *ngIf="esMiCreador() && miembro.rol !== 'CREADOR'" class="btn btn-sm btn-danger"
+                            (click)="eliminarMiembro(miembro)">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Crear Grupo -->
+<div class="modal" *ngIf="mostrarModalNuevoGrupo">
+    <div class="modal-overlay" (click)="cancelarModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Crear Nuevo Grupo</h2>
+            <button class="btn-close" (click)="cancelarModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Nombre del Grupo:</label>
+                <input type="text" class="form-control" [(ngModel)]="nombreNuevoGrupo"
+                    placeholder="Ej: Familia González" maxlength="100" />
+            </div>
+            <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="cancelarModal()">
+                Cancelar
+            </button>
+            <button class="btn btn-primary" (click)="crearGrupo()" [disabled]="cargando || !nombreNuevoGrupo.trim()">
+                {{ cargando ? 'Creando...' : 'Crear Grupo' }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Invitar Miembro -->
+<div class="modal" *ngIf="mostrarModalInvitar">
+    <div class="modal-overlay" (click)="cancelarModal()"></div>
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h2>Invitar Miembro a "{{ grupoSeleccionado?.nombre }}"</h2>
+            <button class="btn-close" (click)="cancelarModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- Búsqueda -->
+            <div class="search-section">
+                <label>Buscar usuario por nickname:</label>
+                <div class="search-box">
+                    <input type="text" class="form-control" [(ngModel)]="busquedaNickname"
+                        placeholder="Ingresa el nickname..." (keyup.enter)="buscarUsuarios()" />
+                    <button class="btn btn-primary" (click)="buscarUsuarios()"
+                        [disabled]="buscando || !busquedaNickname.trim()">
+                        {{ buscando ? 'Buscando...' : '🔍 Buscar' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resultados de Búsqueda -->
+            <div *ngIf="usuariosEncontrados.length > 0" class="resultados-section">
+                <h3>Usuarios Encontrados:</h3>
+                <div class="usuarios-lista">
+                    <div *ngFor="let usuario of usuariosEncontrados" class="usuario-item"
+                        [class.selected]="usuarioSeleccionado?.idUsuario === usuario.idUsuario"
+                        (click)="seleccionarUsuario(usuario)">
+                        <div class="usuario-info">
+                            <span class="usuario-icon">👤</span>
+                            <div>
+                                <strong>{{ usuario.nickname }}</strong>
+                                <small>{{ usuario.correo }}</small>
+                            </div>
+                        </div>
+                        <span class="check-icon" *ngIf="usuarioSeleccionado?.idUsuario === usuario.idUsuario">
+                            ✓
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usuario Seleccionado -->
+            <div *ngIf="usuarioSeleccionado" class="seleccionado-section">
+                <div class="alert alert-info">
+                    <strong>✓ Usuario seleccionado:</strong> {{ usuarioSeleccionado.nickname }}
+                </div>
+            </div>
+
+            <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="cancelarModal()">
+                Cancelar
+            </button>
+            <button class="btn btn-primary" (click)="enviarInvitacion()" [disabled]="cargando || !usuarioSeleccionado">
+                {{ cargando ? 'Enviando...' : 'Enviar Invitación' }}
+            </button>
+        </div>
+    </div>
+</div>

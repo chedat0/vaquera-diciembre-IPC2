@@ -14,7 +14,7 @@
                 required>
 
             <label>
-                <input type="checkbox" [(ngModel)]="nuevaCategoria.activado" name="activado">
+                <input type="checkbox" [(ngModel)]="nuevaCategoria.activa" name="activado">
                 Activada
             </label>
 
@@ -44,8 +44,8 @@
                         <td>{{ cat.idCategoria }}</td>
                         <td>{{ cat.nombre }}</td>
                         <td>
-                            <span [class]="cat.activado ? 'badge-activo' : 'badge-inactivo'">
-                                {{ cat.activado ? 'Activa' : 'Inactiva' }}
+                            <span [class]="cat.activa ? 'badge-activo' : 'badge-inactivo'">
+                                {{ cat.activa ? 'Activa' : 'Inactiva' }}
                             </span>
                         </td>
                         <td>
@@ -61,7 +61,7 @@
                             <input type="text" [(ngModel)]="categoriaEditando!.nombre" class="input-inline">
                         </td>
                         <td>
-                            <input type="checkbox" [(ngModel)]="categoriaEditando!.activado">
+                            <input type="checkbox" [(ngModel)]="categoriaEditando!.activa">
                         </td>
                         <td>
                             <button class="btn-guardar-sm" (click)="guardarEdicion()">Guardar Edicion</button>

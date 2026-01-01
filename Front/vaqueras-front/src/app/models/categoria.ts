@@ -2,12 +2,13 @@ export interface Categoria {
     idCategoria?: number;
     nombre: string;
     descripcion?: string;
-    activado?: boolean;
+    activa?: boolean;
+    }
 
-}
+    export interface CategoriaEmpresa {
+    idCategoria?: number;
+    nombre: string;   
+    activa?: boolean;
+    }
 
-export interface CategoriaResponse {
-    success: boolean;
-    message: string;
-    data: Categoria | Categoria[] | null;
-}
+

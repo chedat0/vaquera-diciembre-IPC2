@@ -1,0 +1,149 @@
+<div class="comprar-container">
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading-page">
+        <div class="spinner"></div>
+        <p>Cargando información...</p>
+    </div>
+
+    <!-- Contenido principal -->
+    <div *ngIf="!cargando && juego" class="compra-content">
+
+        <!-- Mensaje de éxito -->
+        <div *ngIf="compraExitosa" class="exito-page">
+            <div class="exito-icon">✓</div>
+            <h1>¡Compra Exitosa!</h1>
+            <p class="exito-mensaje">
+                <strong>{{ juego.titulo }}</strong> ha sido agregado a tu biblioteca
+            </p>
+            <p class="exito-submensaje">
+                Redirigiendo a tu biblioteca en 3 segundos...
+            </p>
+            <div class="exito-acciones">
+                <button class="btn btn-primary btn-large" (click)="irABiblioteca()">
+                    📚 Ir a Mi Biblioteca Ahora
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulario de compra -->
+        <div *ngIf="!compraExitosa" class="compra-layout">
+
+            <!-- Columna izquierda: Información del juego -->
+            <div class="info-juego">
+                <!-- Breadcrumb -->
+                <div class="breadcrumb">
+                    <button class="btn-link" (click)="volver()">← Volver</button>
+                </div>
+
+                <!-- Imagen principal -->
+                <div class="imagen-principal" *ngIf="juego.imagenPrincipal">
+                    <img [src]="juego.imagenPrincipal" [alt]="juego.titulo" />
+                </div>
+
+                <!-- Detalles del juego -->
+                <div class="detalles-juego">
+                    <h1>{{ juego.titulo }}</h1>
+
+                    <div class="info-item" *ngIf="juego.nombreEmpresa">
+                        <span class="label">Desarrollador:</span>
+                        <span class="valor">{{ juego.nombreEmpresa }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Clasificación:</span>
+                        <span class="badge-clasificacion" [class]="'badge-' + juego.clasificacionEdad.toLowerCase()">
+                            {{ clasificacionTexto }}
+                        </span>
+                    </div>
+
+                    <div class="descripcion" *ngIf="juego.descripcion">
+                        <h3>Descripción</h3>
+                        <p>{{ juego.descripcion }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: Resumen de compra -->
+            <div class="resumen-compra">
+                <div class="resumen-card">
+                    <h2>Resumen de Compra</h2>
+
+                    <!-- Precio -->
+                    <div class="precio-section">
+                        <div class="precio-label">Precio del juego</div>
+                        <div class="precio-valor">${{ juego.precio.toFixed(2) }}</div>
+                    </div>
+
+                    <!-- Saldo -->
+                    <div class="saldo-section">
+                        <div class="saldo-item">
+                            <span>Tu saldo actual:</span>
+                            <span class="saldo-valor" [class.suficiente]="tieneSaldoSuficiente"
+                                [class.insuficiente]="!tieneSaldoSuficiente">
+                                ${{ saldoActual.toFixed(2) }}
+                            </span>
+                        </div>
+
+                        <!-- Advertencia de saldo insuficiente -->
+                        <div class="alerta-saldo" *ngIf="!tieneSaldoSuficiente">
+                            <div class="alert-inline alert-warning">
+                                <strong>⚠️ Saldo insuficiente</strong>
+                                <p>Te faltan <strong>${{ faltante.toFixed(2) }}</strong> para realizar esta compra.</p>
+                            </div>
+                            <button class="btn btn-secondary btn-block" (click)="irACartera()">
+                                💳 Recargar Saldo
+                            </button>
+                        </div>
+
+                        <!-- Saldo después de compra -->
+                        <div class="saldo-item resultado" *ngIf="tieneSaldoSuficiente">
+                            <span>Saldo después de compra:</span>
+                            <span class="saldo-nuevo">${{ (saldoActual - juego.precio).toFixed(2) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="acciones-compra">
+                        <button class="btn btn-primary btn-large btn-block" (click)="confirmarCompra()"
+                            [disabled]="procesando || !tieneSaldoSuficiente">
+                            <span *ngIf="!procesando">
+                                💳 Comprar por ${{ juego.precio.toFixed(2) }}
+                            </span>
+                            <span *ngIf="procesando">
+                                ⏳ Procesando compra...
+                            </span>
+                        </button>
+
+                        <button class="btn btn-secondary btn-block" (click)="volver()" [disabled]="procesando">
+                            Cancelar
+                        </button>
+                    </div>
+
+                    <!-- Información adicional -->
+                    <div class="info-adicional">
+                        <h4>ℹ️ Información</h4>
+                        <ul>
+                            <li>El juego se agregará instantáneamente a tu biblioteca</li>
+                            <li>Podrás instalarlo desde la sección Biblioteca</li>
+                            <li>La compra incluye la licencia permanente</li>
+                            <li>Se validará automáticamente tu edad según la clasificación</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="!cargando && !juego" class="error-page">
+        <div class="error-icon">⚠️</div>
+        <h2>Juego no encontrado</h2>
+        <p>El juego que buscas no existe o no está disponible.</p>
+        <button class="btn btn-primary" (click)="volver()">
+            ← Volver a la tienda
+        </button>
+    </div>
+</div>

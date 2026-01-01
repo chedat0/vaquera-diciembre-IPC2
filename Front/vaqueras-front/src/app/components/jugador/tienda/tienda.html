@@ -1,160 +1,168 @@
 <div class="tienda-container">
+    <!-- Banner/Carrusel Principal -->
+    <div class="banner-section" *ngIf="juegosBanner.length > 0">
+        <div class="banner-carousel">
+            <div class="banner-slide" *ngFor="let juego of juegosBanner; let i = index"
+                [class.active]="i === indiceBannerActual">
+                <div class="banner-content">
+                    <div class="banner-info">
+                        <h2>{{ juego.titulo }}</h2>
+                        <p class="banner-desc">{{ juego.descripcion }}</p>
+                        <div class="banner-stats">
+                            <span class="rating">{{ obtenerEstrellas(juego.promedioCalificacion || 0) }} {{
+                                juego.promedioCalificacion }}</span>
+                            <span class="price">${{ juego.precio }}</span>
+                        </div>
+                        <button (click)="verDetalle(juego)" class="btn-banner">Ver Detalles</button>
+                    </div>
+                    <div class="banner-image">
+                        <img [src]="juego.imagenUrl" [alt]="juego.titulo">
+                    </div>
+                </div>
+            </div>
 
-    <div class="tienda-header">
-        <img src="/public/icons/LogoVaqueras1.png" alt="Vaqueras Logo" class="logo" />
-        <h1>Tienda de Juegos</h1>
-        <p class="subtitle">Explora nuestra colección de juegos</p>
-    </div>
+            <!-- Controles del carrusel -->
+            <button class="banner-control prev" (click)="anteriorBanner()">‹</button>
+            <button class="banner-control next" (click)="siguienteBanner()">›</button>
 
-    <div *ngIf="errorMessage" class="alert error">
-        <span class="icon-x"></span>
-        <span>{{ errorMessage }}</span>
-        <button class="close-btn" (click)="errorMessage = ''">
-            <span class="icon-close"></span>
-        </button>
-    </div>
-
-    <div *ngIf="successMessage" class="alert success">
-        <span class="icon-check"></span>
-        <span>{{ successMessage }}</span>
-        <button class="close-btn" (click)="successMessage = ''">
-            <span class="icon-close"></span>
-        </button>
-    </div>
-
-    <div class="filtros-container">
-
-        <div class="busqueda-box">
-            <span class="icon-search"></span>
-            <input type="text" [(ngModel)]="busqueda" (ngModelChange)="aplicarFiltros()"
-                placeholder="Buscar juegos por nombre..." class="busqueda-input" />
-            <button *ngIf="busqueda" class="clear-btn" (click)="busqueda = ''; aplicarFiltros()">
-                <span class="icon-close"></span>
-            </button>
+            <!-- Indicadores -->
+            <div class="banner-indicators">
+                <span *ngFor="let juego of juegosBanner; let i = index" [class.active]="i === indiceBannerActual"
+                    (click)="irABanner(i)"></span>
+            </div>
         </div>
+    </div>
 
-        <div class="filtros-row">
+    <!-- Sección de Filtros -->
+    <div class="filters-container">
+        <h2>Explorar Juegos</h2>
 
-            <div class="filtro-grupo">
+        <div class="filters-grid">
+            <!-- Búsqueda -->
+            <div class="filter-group full-width">
+                <input type="text" [(ngModel)]="busqueda" (ngModelChange)="aplicarFiltros()"
+                    placeholder="🔍 Buscar por título o descripción..." class="search-input">
+            </div>
+
+            <!-- Categoría -->
+            <div class="filter-group">
+                <label>Categoría</label>
+                <select [(ngModel)]="categoriaSeleccionada" (ngModelChange)="aplicarFiltros()">
+                    <option value="">Todas las categorías</option>
+                    <option *ngFor="let cat of categorias" [value]="cat.nombre">{{ cat.nombre }}</option>
+                </select>
+            </div>
+
+            <!-- Empresa -->
+            <div class="filter-group">
+                <label>Desarrollador</label>
+                <select [(ngModel)]="empresaSeleccionada" (ngModelChange)="aplicarFiltros()">
+                    <option value="">Todos los desarrolladores</option>
+                    <option *ngFor="let emp of empresas" [value]="emp.nombre">{{ emp.nombre }}</option>
+                </select>
+            </div>
+
+            <!-- Precio -->
+            <div class="filter-group">
+                <label>Precio Máximo: ${{ precioMax }}</label>
+                <input type="range" [(ngModel)]="precioMax" (ngModelChange)="aplicarFiltros()" min="0" max="1000"
+                    step="10" class="range-input">
+            </div>
+
+            <!-- Clasificación -->
+            <div class="filter-group">
                 <label>Clasificación</label>
-                <select [(ngModel)]="clasificacionSeleccionada" (ngModelChange)="aplicarFiltros()"
-                    class="filtro-select">
+                <select [(ngModel)]="clasificacionSeleccionada" (ngModelChange)="aplicarFiltros()">
                     <option value="">Todas</option>
                     <option value="E">E - Para todos</option>
-                    <option value="T">T - 12+ años</option>
-                    <option value="M">M - 16+ años</option>
-                    <option value="AO">AO - 18+ años</option>
+                    <option value="T">T - Adolescentes</option>
+                    <option value="M">M - Adultos</option>
                 </select>
             </div>
 
-            <div class="filtro-grupo">
-                <label>Precio mínimo</label>
-                <input type="number" [(ngModel)]="precioMin" (ngModelChange)="aplicarFiltros()" placeholder="$0" min="0"
-                    class="filtro-input" />
-            </div>
-
-            <div class="filtro-grupo">
-                <label>Precio máximo</label>
-                <input type="number" [(ngModel)]="precioMax" (ngModelChange)="aplicarFiltros()" placeholder="$999"
-                    min="0" class="filtro-input" />
-            </div>
-
-            <div class="filtro-grupo">
+            <!-- Ordenamiento -->
+            <div class="filter-group">
                 <label>Ordenar por</label>
-                <select [(ngModel)]="ordenamiento" (ngModelChange)="aplicarFiltros()" class="filtro-select">
-                    <option value="recientes">Más recientes</option>
-                    <option value="precio-asc">Precio: Menor a mayor</option>
-                    <option value="precio-desc">Precio: Mayor a menor</option>
-                    <option value="nombre">Nombre (A-Z)</option>
+                <select [(ngModel)]="ordenamiento" (ngModelChange)="aplicarFiltros()">
+                    <option value="balance">Mejor Balance</option>
+                    <option value="calificacion">Mejor Calificación</option>
+                    <option value="precio-asc">Precio: Menor a Mayor</option>
+                    <option value="precio-desc">Precio: Mayor a Menor</option>
                 </select>
             </div>
 
-            <button class="btn-limpiar" (click)="limpiarFiltros()">
-                <span class="icon-refresh"></span>
-                Limpiar
+            <!-- Botón limpiar -->
+            <div class="filter-group">
+                <button (click)="limpiarFiltros()" class="btn-clear">🗑️ Limpiar Filtros</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="results-section">
+        <div class="results-header">
+            <h3>{{ juegosFiltrados.length }} juegos encontrados</h3>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" *ngIf="cargando">
+            <div class="spinner"></div>
+            <p>Cargando juegos...</p>
+        </div>
+
+        <!-- Grid de Juegos -->
+        <div class="juegos-grid" *ngIf="!cargando">
+            <div class="juego-card" *ngFor="let juego of juegosPaginados" (click)="verDetalle(juego)">
+                <div class="juego-image">
+                    <img [src]="juego.imagenPrincipal" [alt]="juego.titulo">
+                    <div class="juego-clasificacion">{{ juego.clasificacionEdad }}</div>
+                </div>
+
+                <div class="juego-content">
+                    <h4 class="juego-title">{{ juego.titulo }}</h4>
+                    <p class="juego-empresa">{{ juego.nombreEmpresa }}</p>
+
+                    <div class="juego-categorias">
+                        <span *ngFor="let cat of juego.categorias" class="categoria-tag">{{ cat }}</span>
+                    </div>
+
+                    <div class="juego-rating">
+                        <span class="stars">{{ obtenerEstrellas(juego.calificacionPromedio || 0) }}</span>
+                        <span class="rating-value">{{ juego.calificacionPromedio.toFixed(1)}}</span>
+                    </div>
+
+                    <div class="juego-footer">
+                        <div class="juego-price">${{ juego.precio.toFixed(2) }}</div>
+                        <button (click)="irAComprar(juego)">
+                            💳 Comprar ${{ juego.precio }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!cargando && juegosPaginados.length === 0">
+            <div class="empty-icon">🎮</div>
+            <h3>No se encontraron juegos</h3>
+            <p>Intenta ajustar los filtros de búsqueda</p>
+            <button (click)="limpiarFiltros()" class="btn-primary">Limpiar Filtros</button>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination" *ngIf="totalPaginas > 1">
+            <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1" class="page-btn">
+                ‹ Anterior
+            </button>
+
+            <button *ngFor="let pagina of paginasArray" (click)="cambiarPagina(pagina)"
+                [class.active]="pagina === paginaActual" class="page-number">
+                {{ pagina }}
+            </button>
+
+            <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas"
+                class="page-btn">
+                Siguiente ›
             </button>
         </div>
     </div>
-
-    <div class="resultados-info">
-        <p>
-            <strong>{{ juegosFiltrados.length }}</strong>
-            {{ juegosFiltrados.length === 1 ? 'juego encontrado' : 'juegos encontrados' }}
-        </p>
-    </div>
-
-    <div *ngIf="loading" class="loading-container">
-        <div class="icon-spinner"></div>
-        <p>Cargando juegos...</p>
-    </div>
-
-    <div *ngIf="!loading && juegosFiltrados.length > 0" class="juegos-grid">
-        <div *ngFor="let juego of juegosFiltrados" class="juego-card">
-
-            <div class="imagen-container">
-                <img [src]="juego.imagenUrl || 'assets/default-game.png'" [alt]="juego.titulo" class="juego-imagen" />                
-                <div class="badge-overlay" [style.background-color]="getColor(juego.clasifiacionPorEdad || '')">
-                    {{ juego.clasifiacionPorEdad || 'N/A' }}
-                </div>
-            </div>
-
-            <!-- Info del juego -->
-            <div class="juego-info">
-                <h3 class="juego-titulo">{{ juego.titulo }}</h3>
-
-                <p class="juego-descripcion">
-                    {{ juego.descripcion.substring(0, 80) }}
-                    <span *ngIf="juego.descripcion && juego.descripcion.length > 80">...</span>
-                </p>
-
-                <!-- Empresa -->
-                <p class="juego-empresa" *ngIf="juego.nombreEmpresa">
-                    <span class="icon-building"></span>
-                    {{ juego.nombreEmpresa }}
-                </p>
-
-                <!-- Badge de clasificación -->
-                <div class="badge-clasificacion" [style.background-color]="getColor(juego.clasifiacionPorEdad || '')">
-                    <span class="clasificacion-text">
-                        {{ juego.clasifiacionPorEdad || 'Sin clasificar' }}
-                        <span class="texto-small" *ngIf="getEdadMinima(juego.clasifiacionPorEdad || '') > 0">
-                            - {{ getEdadMinima(juego.clasifiacionPorEdad || '') }}+
-                        </span>
-                    </span>
-                </div>
-
-                <!-- Precio -->
-                <div class="precio-container">
-                    <span class="precio">${{ juego.precio.toFixed(2) }}</span>
-                </div>
-
-                <!-- Botón de compra -->
-                <button class="btn-comprar" [disabled]="comprando || !usuario" (click)="comprarJuego(juego)">
-                    <span class="icon-cart" *ngIf="!comprando"></span>
-                    <span class="icon-spinner-small" *ngIf="comprando"></span>
-                    <span *ngIf="!comprando">Comprar Ahora</span>
-                    <span *ngIf="comprando">Procesando...</span>
-                </button>
-
-                <!-- Mensaje si no está logueado -->
-                <p *ngIf="!usuario" class="info-login">
-                    <span class="icon-lock"></span>
-                    Inicia sesión para comprar
-                </p>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Sin resultados -->
-    <div *ngIf="!loading && juegosFiltrados.length === 0" class="empty-state">
-        <div class="icon-empty"></div>
-        <h2>No se encontraron juegos</h2>
-        <p>Intenta cambiar los filtros de búsqueda</p>
-        <button class="btn-secondary" (click)="limpiarFiltros()">
-            <span class="icon-refresh"></span>
-            Limpiar filtros
-        </button>
-    </div>
-
 </div>

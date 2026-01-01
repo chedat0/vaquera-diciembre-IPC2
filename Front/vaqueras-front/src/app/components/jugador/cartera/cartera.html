@@ -1,0 +1,217 @@
+<div class="cartera-container">
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>💰 Mi Cartera</h1>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading">
+        Cargando cartera...
+    </div>
+
+    <!-- Cartera -->
+    <div *ngIf="!cargando && cartera" class="cartera-layout">
+
+        <!-- Columna izquierda: Saldo y Estadísticas -->
+        <div class="cartera-main">
+            <div class="cartera-card">
+                <!-- Saldo actual -->
+                <div class="saldo-section">
+                    <div class="saldo-label">Saldo Disponible</div>
+                    <div class="saldo-valor">${{ cartera.saldo.toFixed(2) }}</div>
+                </div>
+
+                <!-- Botón de recarga -->
+                <div class="acciones-section">
+                    <button class="btn btn-primary btn-large" (click)="abrirModalRecarga()">
+                        💳 Recargar Saldo
+                    </button>
+                </div>
+
+                <!-- Estadísticas rápidas -->
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <div class="stat-icon recarga">↑</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Recargado</div>
+                            <div class="stat-value">${{ totalRecargas.toFixed(2) }}</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon compra">↓</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Gastado</div>
+                            <div class="stat-value">${{ totalCompras.toFixed(2) }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información -->
+                <div class="info-section">
+                    <h3>¿Cómo funciona la cartera?</h3>
+                    <ul>
+                        <li>🎮 Usa tu saldo para comprar juegos</li>
+                        <li>💵 Recarga el monto que necesites</li>
+                        <li>🔒 Tus transacciones son seguras</li>
+                        <li>📊 El saldo se actualiza instantáneamente</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Historial de Transacciones -->
+        <div class="transacciones-section">
+            <div class="transacciones-card">
+                <!-- Header con filtros -->
+                <div class="transacciones-header">
+                    <h2>📜 Historial de Transacciones</h2>
+
+                    <!-- Filtros -->
+                    <div class="filtros">
+                        <button class="filtro-btn" [class.active]="filtroTipo === 'TODAS'"
+                            (click)="cambiarFiltro('TODAS')">
+                            Todas
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroTipo === 'RECARGA'"
+                            (click)="cambiarFiltro('RECARGA')">
+                            Recargas
+                        </button>
+                        <button class="filtro-btn" [class.active]="filtroTipo === 'COMPRA'"
+                            (click)="cambiarFiltro('COMPRA')">
+                            Compras
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading transacciones -->
+                <div *ngIf="cargandoTransacciones" class="loading-small">
+                    Cargando transacciones...
+                </div>
+
+                <!-- Lista de transacciones -->
+                <div *ngIf="!cargandoTransacciones" class="transacciones-lista">
+
+                    <!-- Empty state -->
+                    <div *ngIf="transacciones.length === 0" class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>No hay transacciones aún</p>
+                        <small>Las recargas y compras aparecerán aquí</small>
+                    </div>
+
+                    <!-- Transacciones -->
+                    <div *ngFor="let trans of transacciones" class="transaccion-item" [class.recarga]="esRecarga(trans)"
+                        [class.compra]="esCompra(trans)">
+                        <div class="transaccion-icon">
+                            <span *ngIf="esRecarga(trans)">↑</span>
+                            <span *ngIf="esCompra(trans)">↓</span>
+                        </div>
+
+                        <div class="transaccion-info">
+                            <div class="transaccion-tipo">
+                                <strong *ngIf="esRecarga(trans)">Recarga</strong>
+                                <strong *ngIf="esCompra(trans)">Compra de Juego</strong>
+                            </div>
+                            <div class="transaccion-fecha">
+                                {{ formatearFecha(trans.fecha) }}
+                            </div>
+
+                            <!-- Detalles de compra -->
+                            <div *ngIf="esCompra(trans) && trans.comisionAplicada" class="transaccion-detalles">
+                                <small>Comisión: {{ trans.comisionAplicada }}%</small>
+                            </div>
+                        </div>
+
+                        <div class="transaccion-monto">
+                            <span class="monto-valor" [class.positivo]="esRecarga(trans)"
+                                [class.negativo]="esCompra(trans)">
+                                <span *ngIf="esRecarga(trans)">+</span>
+                                <span *ngIf="esCompra(trans)">-</span>
+                                ${{ trans.monto.toFixed(2) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Recargar Saldo -->
+<div class="modal" *ngIf="mostrarModalRecarga">
+    <div class="modal-overlay" (click)="cancelarRecarga()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>💳 Recargar Saldo</h2>
+            <button class="btn-close" (click)="cancelarRecarga()" [disabled]="procesando">×</button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Saldo actual -->
+            <div class="saldo-actual-info">
+                <span class="label">Saldo actual:</span>
+                <span class="valor">${{ (cartera?.saldo ?? 0).toFixed(2) }}</span>
+            </div>
+
+            <!-- Montos rápidos -->
+            <div class="montos-rapidos-section">
+                <label>Montos rápidos:</label>
+                <div class="montos-grid">
+                    <button *ngFor="let monto of montosRapidos" class="btn-monto"
+                        [class.selected]="montoRecarga === monto" (click)="seleccionarMontoRapido(monto)"
+                        [disabled]="procesando">
+                        ${{ monto }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Monto personalizado -->
+            <div class="form-group">
+                <label>O ingresa un monto personalizado:</label>
+                <div class="input-group">
+                    <span class="input-prefix">$</span>
+                    <input type="number" class="form-control" [(ngModel)]="montoRecarga" placeholder="0.00" min="0"
+                        step="0.01" [disabled]="procesando" />
+                </div>
+            </div>
+
+            <!-- Vista previa -->
+            <div class="preview-section" *ngIf="montoRecarga > 0 && cartera">
+                <div class="preview-item">
+                    <span>Saldo actual:</span>
+                    <span>${{ cartera.saldo.toFixed(2) }}</span>
+                </div>
+                <div class="preview-item monto">
+                    <span>Monto a recargar:</span>
+                    <span>+ ${{ montoRecarga.toFixed(2) }}</span>
+                </div>
+                <div class="preview-item total">
+                    <span><strong>Nuevo saldo:</strong></span>
+                    <span><strong>${{ (cartera.saldo + montoRecarga).toFixed(2) }}</strong></span>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div *ngIf="error" class="alert alert-error">
+                {{ error }}
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="cancelarRecarga()" [disabled]="procesando">
+                Cancelar
+            </button>
+            <button class="btn btn-primary" (click)="recargar()" [disabled]="procesando || montoRecarga <= 0">
+                <span *ngIf="!procesando">
+                    Recargar ${{ montoRecarga.toFixed(2) }}
+                </span>
+                <span *ngIf="procesando">
+                    Procesando...
+                </span>
+            </button>
+        </div>
+    </div>
+</div>

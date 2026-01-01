@@ -1,0 +1,46 @@
+<div class="container">
+    <h1>💰 Gestión de Comisiones</h1>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <!-- Comisión Global -->
+    <div class="card">
+        <h2>Comisión Global de la Plataforma</h2>
+        <div class="comision-actual">
+            <span class="porcentaje">{{comisionGlobal}}%</span>
+            <button class="btn-primary" (click)="mostrarEditarGlobal = !mostrarEditarGlobal">Modificar</button>
+        </div>
+
+        <div *ngIf="mostrarEditarGlobal" class="form-inline">
+            <input type="number" [(ngModel)]="nuevaComisionGlobal" min="0" max="100" step="0.1" />
+            <button (click)="actualizarComisionGlobal()" [disabled]="procesando">Guardar</button>
+            <button (click)="mostrarEditarGlobal = false">Cancelar</button>
+        </div>
+
+        <p class="info">⚠️ Al cambiar la comisión global, las empresas con comisión superior serán ajustadas
+            automáticamente</p>
+    </div>
+
+    <!-- Empresas con Comisión Especial -->
+    <div class="card">
+        <h2>Empresas con Comisión Específica</h2>
+        <table *ngIf="empresasConComision.length > 0">
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Comisión</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let emp of empresasConComision">
+                    <td>{{emp.nombreEmpresa}}</td>
+                    <td>{{emp.comisionEspecifica}}%</td>
+                    <td><button (click)="eliminarComisionEmpresa(emp.idEmpresa)">🗑️ Eliminar</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <p *ngIf="empresasConComision.length === 0" class="empty">No hay empresas con comisión específica</p>
+    </div>
+</div>

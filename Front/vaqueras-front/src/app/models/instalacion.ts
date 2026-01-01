@@ -1,12 +1,11 @@
-import { EstadoInstalacion } from "./enums";
-
-export interface InstalacionJuego {
+export interface Instalacion {
+    idInstalacion?: number;
     idUsuario: number;
     idJuego: number;
+    fechaEstado: string; // YYYY-MM-DD
+    estado: 'INSTALADO' | 'NO_INSTALADO';
     esPrestado: boolean;
-    estado: EstadoInstalacion;
-    fechaEstado: string;
     tituloJuego?: string;
-    idPropietario?: number;
     nombrePropietario?: string;
 }
+

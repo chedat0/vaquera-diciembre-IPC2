@@ -1,0 +1,105 @@
+<div class="biblioteca-container">
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Mi Biblioteca</h1>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Disponibles:</span>
+                <span class="stat-value">{{ juegosDisponiblesCount }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Instalados:</span>
+                <span class="stat-value">{{ juegosInstaladosCount }}</span>
+            </div>
+            <div class="stat-item prestados">
+                <span class="stat-label">Prestados instalados:</span>
+                <span class="stat-value">{{ juegosPrestadosInstalados }}/1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab" [class.active]="vistaActual === 'disponibles'" (click)="cambiarVista('disponibles')">
+            📚 Disponibles ({{ juegosDisponiblesCount }})
+        </button>
+        <button class="tab" [class.active]="vistaActual === 'instalados'" (click)="cambiarVista('instalados')">
+            💿 Instalados ({{ juegosInstaladosCount }})
+        </button>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="search-section">
+        <input type="text" class="search-input" [(ngModel)]="busqueda" placeholder="🔍 Buscar juego..." />
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading">
+        Cargando biblioteca...
+    </div>
+
+    <!-- Lista de Juegos -->
+    <div *ngIf="!cargando" class="juegos-grid">
+        <!-- Empty State -->
+        <div *ngIf="juegosFiltrados.length === 0" class="empty-state">
+            <p *ngIf="vistaActual === 'disponibles'">
+                No tienes juegos disponibles. ¡Compra tu primer juego en la tienda!
+            </p>
+            <p *ngIf="vistaActual === 'instalados'">
+                No tienes juegos instalados. Instala un juego desde la pestaña "Disponibles".
+            </p>
+        </div>
+
+        <!-- Juegos -->
+        <div *ngFor="let juego of juegosFiltrados" class="juego-card" [class.prestado]="juego.esPrestado"
+            [class.instalado]="estaInstalado(juego)">
+            <div class="juego-header">
+                <h3>{{ juego.tituloJuego }}</h3>
+                <div class="badges">
+                    <span class="badge badge-prestado" *ngIf="juego.esPrestado">
+                        📤 Prestado
+                    </span>
+                    <span class="badge badge-propio" *ngIf="!juego.esPrestado">
+                        ✓ Propio
+                    </span>
+                    <span class="badge badge-instalado" *ngIf="estaInstalado(juego)">
+                        💿 Instalado
+                    </span>
+                </div>
+            </div>
+
+            <div class="juego-info" *ngIf="juego.esPrestado">
+                <p><strong>Propietario:</strong> {{ juego.nombrePropietario }}</p>
+            </div>
+
+            <div class="juego-acciones">
+                <!-- Vista: Disponibles -->
+                <div *ngIf="vistaActual === 'disponibles'">
+                    <button *ngIf="!estaInstalado(juego)" class="btn btn-primary" (click)="instalar(juego)"
+                        [disabled]="procesando">
+                        {{ procesando ? 'Instalando...' : '⬇️ Instalar' }}
+                    </button>
+                    <button *ngIf="estaInstalado(juego)" class="btn btn-success" disabled>
+                        ✓ Instalado
+                    </button>
+                </div>
+
+                <!-- Vista: Instalados -->
+                <div *ngIf="vistaActual === 'instalados'">
+                    <button class="btn btn-danger" (click)="desinstalar(juego)" [disabled]="procesando">
+                        {{ procesando ? 'Desinstalando...' : '🗑️ Desinstalar' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nota para juegos prestados -->
+            <div *ngIf="juego.esPrestado && !estaInstalado(juego)" class="nota-prestado">
+                <small>⚠️ Solo puedes tener 1 juego prestado instalado a la vez</small>
+            </div>
+        </div>
+    </div>
+</div>

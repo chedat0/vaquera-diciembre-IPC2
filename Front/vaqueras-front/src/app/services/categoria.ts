@@ -1,40 +1,44 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Categoria, CategoriaResponse } from '../models/categoria';
+import { backEnd } from '../app.config';
+import { Categoria } from '../models/categoria';
+import { ApiResponse } from '../models/enums';
+
 
 @Injectable({
     providedIn: 'root'
 })
 export class CategoriaService {
-    private apiUrl = 'http://localhost:8080/vaqueras_IPC2-1.0-SNAPSHOT/categorias';
+    private apiUrl = `${backEnd.apiUrl}/categorias`;
 
     constructor(private http: HttpClient) { }
-
-    listarTodas(): Observable<CategoriaResponse> {
-        return this.http.get<CategoriaResponse>(this.apiUrl);
+    
+    obtenerTodas(): Observable<ApiResponse<Categoria[]>> {
+        return this.http.get<ApiResponse<Categoria[]>>(`${this.apiUrl}`);
+    }
+    
+    obtenerActivas(): Observable<ApiResponse<Categoria[]>> {
+        return this.http.get<ApiResponse<Categoria[]>>(`${this.apiUrl}/activas`);
+    }
+    
+    obtenerPorId(id: number): Observable<ApiResponse<Categoria>> {
+        return this.http.get<ApiResponse<Categoria>>(`${this.apiUrl}/${id}`);
     }
 
-    listarActivas(): Observable<CategoriaResponse> {
-        const params = new HttpParams().set('activas', 'true');
-        return this.http.get<CategoriaResponse>(this.apiUrl, { params });
+    crear(categoria: Categoria): Observable<ApiResponse<Categoria>> {
+        return this.http.post<ApiResponse<Categoria>>(`${this.apiUrl}`, categoria);
     }
 
-    buscarPorId(id: number): Observable<CategoriaResponse> {
-        const params = new HttpParams().set('id', id.toString());
-        return this.http.get<CategoriaResponse>(this.apiUrl, { params });
+    actualizar(categoria: Categoria): Observable<ApiResponse<any>> {
+        return this.http.put<ApiResponse<any>>(`${this.apiUrl}/${categoria.idCategoria}`, categoria);
+    }
+    
+    eliminar(id: number): Observable<ApiResponse<any>> {
+        return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${id}`);
     }
 
-    crear(categoria: Categoria): Observable<CategoriaResponse> {
-        return this.http.post<CategoriaResponse>(this.apiUrl, categoria);
-    }
-
-    actualizar(categoria: Categoria): Observable<CategoriaResponse> {
-        return this.http.put<CategoriaResponse>(this.apiUrl, categoria);
-    }
-
-    eliminar(id: number): Observable<CategoriaResponse> {
-        const params = new HttpParams().set('id', id.toString());
-        return this.http.delete<CategoriaResponse>(this.apiUrl, { params });
+    cambiarEstado( activa: boolean): Observable<ApiResponse<any>> {
+        return this.actualizar( { activa } as Categoria);
     }
 }

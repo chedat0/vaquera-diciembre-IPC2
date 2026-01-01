@@ -1,0 +1,48 @@
+<div class="container">
+    <div class="welcome">
+        <h1>Panel de Empresa 🏢</h1>
+        <p>{{usuarioActual.nombreEmpresa}}</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="icon">🎮</div>
+            <h3>{{stats.totalJuegos}}</h3>
+            <p>Juegos Publicados</p>
+        </div>
+
+        <div class="stat-card green">
+            <div class="icon">👥</div>
+            <h3>{{stats.totalUsuarios}}</h3>
+            <p>Usuarios de la Empresa</p>
+        </div>
+
+        <div class="stat-card orange">
+            <div class="icon">💰</div>
+            <h3>{{stats.comision}}%</h3>
+            <p>Comisión Actual</p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <h2>Acciones Rápidas</h2>
+        <div class="action-grid">
+            <div class="action-card" (click)="navegar('/empresa/crear-juego')">
+                <div class="icon">➕</div>
+                <span>Crear Juego</span>
+            </div>
+            <div class="action-card" (click)="navegar('/empresa/juegos')">
+                <div class="icon">📝</div>
+                <span>Mis Juegos</span>
+            </div>
+            <div class="action-card" (click)="navegar('/empresa/usuarios')">
+                <div class="icon">👥</div>
+                <span>Gestionar Usuarios</span>
+            </div>
+            <div class="action-card" (click)="navegar('/empresa/reportes')">
+                <div class="icon">📊</div>
+                <span>Ver Reportes</span>
+            </div>
+        </div>
+    </div>
+</div>

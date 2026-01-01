@@ -1,0 +1,48 @@
+<div class="container">
+    <div class="welcome">
+        <h1>¡Hola, {{usuarioActual.nickname}}! 👋</h1>
+        <p>Bienvenido a tu espacio de juegos</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card blue" (click)="navegar('/jugador/biblioteca')">
+            <div class="icon">🎮</div>
+            <h3>{{stats.juegosInstalados}}</h3>
+            <p>Juegos en Biblioteca</p>
+        </div>
+
+        <div class="stat-card green">
+            <div class="icon"></div>
+            <h3>$\{{stats.saldoCartera.toFixed(2)}}</h3>
+            <p>Saldo Disponible</p>
+        </div>
+
+        <div class="stat-card orange" (click)="navegar('/jugador/grupos')">
+            <div class="icon"></div>
+            <h3>{{stats.juegosDisponibles}}</h3>
+            <p>Juegos Disponibles</p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <h2>Acciones Rápidas</h2>
+        <div class="action-grid">
+            <div class="action-card" (click)="navegar('/jugador/tienda')">
+                <div class="icon">🛒</div>
+                <span>Explorar Tienda</span>
+            </div>
+            <div class="action-card" (click)="navegar('/jugador/cartera')">
+                <div class="icon">💳</div>
+                <span>Recargar Saldo</span>
+            </div>
+            <div class="action-card" (click)="navegar('/jugador/reportes')">
+                <div class="icon"></div>
+                <span>Ver Reportes</span>
+            </div>
+            <div class="action-card" (click)="navegar('/jugador/perfil')">
+                <div class="icon">⚙️</div>
+                <span>Mi Perfil</span>
+            </div>
+        </div>
+    </div>
+</div>

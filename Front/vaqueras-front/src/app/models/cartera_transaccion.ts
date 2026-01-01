@@ -3,16 +3,30 @@ export interface Cartera {
     saldo: number;
 }
 
-export interface Transaccion {
-    idTransaccion?: number;
+export interface Recarga {
     idUsuario: number;
-    tipo: 'COMPRA' | 'RECARGA';
     monto: number;
-    fecha: string;
-    descripcion?: string;
+    fecha: string; // YYYY-MM-DD
+}
+export interface Transaccion {
+    idTransaccion: number;
+    idUsuario: number;
+    monto: number;
+    tipo: 'RECARGA' | 'COMPRA';
+    fecha: string; // YYYY-MM-DD
+    comisionAplicada?: number;
+    gananciaEmpresa?: number;
+    gananciaPlataforma?: number;
 }
 
-export interface RecargaRequest {
-    idUsuario: number;
-    monto: number;
+export interface FiltroTransacciones {
+    tipo?: 'RECARGA' | 'COMPRA';
+    fechaInicio?: string;
+    fechaFin?: string;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data?: T;
 }

@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import { JuegoService } from '../../../services/juego';
 import { Juego } from '../../../models/juego';
-import { LicenciaService } from '../../../services/licencia';
-import { EdadInfoService } from '../../../services/edad_info';
-import { AuthService } from '../../../services/auth';
-import { Usuario } from '../../../models/usuario';
-import { CompraJuegoRequest } from '../../../models/licencia';
-import { Categoria } from '../../../models/categoria';
+import { EmpresaService } from '../../../services/empresa';
+import { CategoriaService } from '../../../services/categoria';
+import { BannerService } from '../../../services/banner';
 
 
 @Component({
@@ -19,174 +17,242 @@ import { Categoria } from '../../../models/categoria';
   styleUrl: './tienda.css',
 })
 export class Tienda implements OnInit {
-  juegos: Juego[] = [];  
+  juegos: Juego[] = [];
   juegosFiltrados: Juego[] = [];
-  categorias: Categoria[] = [];
-  usuario: Usuario | null = null;
+  juegosBanner: any[] = [];  // Ya vienen ordenados del backend
+  categorias: any[] = [];
+  empresas: any[] = [];
 
-  // Búsqueda y filtros
+  // Filtros
   busqueda = '';
-  categoriaSeleccionada: number | null = null;
+  categoriaSeleccionada = '';
+  empresaSeleccionada = '';
+  precioMin = 0;
+  precioMax = 1000;
   clasificacionSeleccionada = '';
-  precioMin: number | null = null;
-  precioMax: number | null = null;
-  ordenamiento = 'recientes'; // 
-  
-  // Estado de compra
-  loading = false;
-  comprando = false;
-  errorMessage = '';
-  successMessage = '';  
 
-  constructor(    
+  // Ordenamiento
+  ordenamiento = 'balance'; // balance, precio-asc, precio-desc, calificacion
+
+  // Paginación
+  paginaActual = 1;
+  juegosPorPagina = 12;
+  juegosPaginados: Juego[] = [];
+
+  // Estados
+  cargando = false;
+  error = '';
+
+  // Carrusel Banner
+  indiceBannerActual = 0;
+
+  constructor(
+    private router: Router,
+    private bannerService: BannerService,
     private juegoService: JuegoService,
-    private licenciaService: LicenciaService,
-    private edadInfoService: EdadInfoService,
-    private authService: AuthService
+    private categoriaService: CategoriaService,
+    private empresaService: EmpresaService
   ) {}
 
   ngOnInit(): void {
-    this.usuario = this.authService.getCurrentUser();    
-    this.cargarJuegos();
+    this.cargarDatos();
+    this.iniciarCarrusel();
   }
-  
-  cargarJuegos(): void {   
-    this.loading = true;
-    this.juegoService.getJuegosActivos().subscribe({
-      next: (juegos) => {   
-        this.juegos = juegos;
-        this.aplicarFiltros();
-        this.loading = false;
-      },  
-      error: (error) =>{
-      console.error('Error al cargar juegos:', error);
-      this.errorMessage = 'Error al cargar juegos';
-      this.loading = false;
-      }    
+
+  cargarDatos(): void {
+    this.cargando = true;
+        
+    this.bannerService.obtenerMejorBalance(5).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.juegosBanner = response.data || [];
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar banner:', err);
+      }
     });
-    
+        
+    this.juegoService.obtenerActivos().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.juegos = response.data || [];
+          this.aplicarFiltros();
+        }
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = 'Error al cargar juegos';
+        this.cargando = false;
+        console.error(err);
+      }
+    });
+        
+    this.categoriaService.obtenerTodas().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.categorias = response.data || [];
+        }
+      }
+    });
+        
+    this.empresaService.obtenerTodas().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.empresas = response.data || [];
+        }
+      }
+    });
   }
 
   aplicarFiltros(): void {
     let resultado = [...this.juegos];
 
-    // Filtro de búsqueda por nombre
+    // Filtro por búsqueda
     if (this.busqueda.trim()) {
-      const busquedaLower = this.busqueda.toLowerCase().trim();
-      resultado = resultado.filter(juego => 
-        juego.titulo.toLowerCase().includes(busquedaLower) ||
-        juego.descripcion?.toLowerCase().includes(busquedaLower)
+      const termino = this.busqueda.toLowerCase();
+      resultado = resultado.filter(j => 
+        j.titulo.toLowerCase().includes(termino) ||
+        j.descripcion.toLowerCase().includes(termino)
       );
     }
 
     // Filtro por categoría
     if (this.categoriaSeleccionada) {
-      resultado = resultado.filter(juego => 
-        juego.categorias?.some(cat => cat.idCategoria === this.categoriaSeleccionada)
+      resultado = resultado.filter(j =>
+        j.categorias.some(cat => cat === this.categoriaSeleccionada)
       );
     }
 
-    // Filtro por clasificación de edad
+    // Filtro por empresa
+    if (this.empresaSeleccionada) {
+      resultado = resultado.filter(j =>
+        j.nombreEmpresa === this.empresaSeleccionada
+      );
+    }
+
+    // Filtro por precio
+    resultado = resultado.filter(j =>
+      j.precio >= this.precioMin && j.precio <= this.precioMax
+    );
+
+    // Filtro por clasificación
     if (this.clasificacionSeleccionada) {
-      resultado = resultado.filter(juego => 
-        juego.clasifiacionPorEdad?.toUpperCase() === this.clasificacionSeleccionada.toUpperCase()
+      resultado = resultado.filter(j =>
+        j.clasificacionEdad === this.clasificacionSeleccionada
       );
     }
 
-    // Filtro por precio mínimo
-    if (this.precioMin !== null && this.precioMin > 0) {
-      resultado = resultado.filter(juego => juego.precio >= this.precioMin!);
-    }
-
-    // Filtro por precio máximo
-    if (this.precioMax !== null && this.precioMax > 0) {
-      resultado = resultado.filter(juego => juego.precio <= this.precioMax!);
-    }
-
-    // Ordenamiento
+    // Aplicar ordenamiento
     this.ordenarJuegos(resultado);
 
     this.juegosFiltrados = resultado;
+    this.paginaActual = 1;
+    this.paginar();
   }
 
-  //ordena los juegos
   ordenarJuegos(juegos: Juego[]): void {
     switch (this.ordenamiento) {
+      case 'balance':       
+        juegos.sort((a, b) => {
+          if (a.scoreBalance !== undefined && b.scoreBalance !== undefined) {
+            return b.scoreBalance - a.scoreBalance;
+          }
+          return (b.calificacionPromedio ?? 0) - (a.calificacionPromedio ?? 0);
+        });
+        break;
       case 'precio-asc':
         juegos.sort((a, b) => a.precio - b.precio);
         break;
       case 'precio-desc':
         juegos.sort((a, b) => b.precio - a.precio);
         break;
-      case 'nombre':
-        juegos.sort((a, b) => a.titulo.localeCompare(b.titulo));
-        break;
-      case 'recientes':
+      case 'calificacion':
         juegos.sort((a, b) => 
-          new Date(b.fechaPublicacion).getTime() - new Date(a.fechaPublicacion).getTime()
+          (b.calificacionPromedio ?? 0) - (a.calificacionPromedio ?? 0)
         );
         break;
     }
   }
 
-  //limpia filtros
+  paginar(): void {
+    const inicio = (this.paginaActual - 1) * this.juegosPorPagina;
+    const fin = inicio + this.juegosPorPagina;
+    this.juegosPaginados = this.juegosFiltrados.slice(inicio, fin);
+  }
+
+  cambiarPagina(pagina: number): void {
+    this.paginaActual = pagina;
+    this.paginar();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.juegosFiltrados.length / this.juegosPorPagina);
+  }
+
+  get paginasArray(): number[] {
+    return Array.from({ length: this.totalPaginas }, (_, i) => i + 1);
+  }
+
+  verDetalle(juego: Juego): void {
+    this.router.navigate(['/jugador/juego', juego.idJuego]);
+  }
+
+  // Carrusel del Banner
+  iniciarCarrusel(): void {
+    setInterval(() => {
+      this.siguienteBanner();
+    }, 5000);
+  }
+
+  siguienteBanner(): void {
+    if (this.juegosBanner.length > 0) {
+      this.indiceBannerActual = (this.indiceBannerActual + 1) % this.juegosBanner.length;
+    }
+  }
+
+  anteriorBanner(): void {
+    if (this.juegosBanner.length > 0) {
+      this.indiceBannerActual = this.indiceBannerActual === 0
+        ? this.juegosBanner.length - 1
+        : this.indiceBannerActual - 1;
+    }
+  }
+
+  irABanner(indice: number): void {
+    this.indiceBannerActual = indice;
+  }
+
+  irAComprar(juego: Juego): void {
+    this.router.navigate(['/comprar', juego.idJuego]);
+  }
+
+
   limpiarFiltros(): void {
     this.busqueda = '';
-    this.categoriaSeleccionada = null;
+    this.categoriaSeleccionada = '';
+    this.empresaSeleccionada = '';
+    this.precioMin = 0;
+    this.precioMax = 1000;
     this.clasificacionSeleccionada = '';
-    this.precioMin = null;
-    this.precioMax = null;
-    this.ordenamiento = 'recientes';
+    this.ordenamiento = 'balance';
     this.aplicarFiltros();
   }
 
-  comprarJuego(juego: Juego): void {
-    if (!this.usuario) {
-      this.errorMessage = 'Debes iniciar sesión para comprar';
-      return;
-    }
+  obtenerEstrellas(calificacion: number): string {
+    const estrellas = '⭐'.repeat(Math.round(calificacion));
+    const vacias = '☆'.repeat(5 - Math.round(calificacion));
+    return estrellas + vacias;
+  }
 
-    this.comprando = true;
-    this.errorMessage = '';
-    this.successMessage = '';
-
-    const request: CompraJuegoRequest = {
-      idUsuario: this.usuario.idUsuario,
-      idJuego: juego.idJuego
+  obtenerClasificacionTexto(clasificacion: string): string {
+    const textos: any = {
+      'E': 'Para todos',
+      'T': 'Adolescentes',
+      'M': 'Jovenes',
+      'AO': 'Adultos'
     };
-    
-    this.licenciaService.comprarJuego(request).subscribe({
-      next: (response) => {
-        this.comprando = false;
-        if (response.success) {
-          this.successMessage = '¡Compra exitosa!';
-        } else {
-          // Mostrar error del backend (puede ser edad, saldo, etc)
-          this.errorMessage = response.message || 'Error en la compra';
-        }
-      },
-      error: (error) => {
-        this.comprando = false;
-        // Backend retornó error (403 si es problema de edad)
-        this.errorMessage = error.error?.message || 
-                          'No se pudo procesar la compra';
-      }
-    });
-  }
-
-  getColor(clasificacion: string): string {
-    return this.edadInfoService.getColor(clasificacion);
-  }
-
-  getIcono(clasificacion: string): string {
-    return this.edadInfoService.getIcono(clasificacion);
-  }
-
-  getTexto(clasificacion: string): string {
-    return this.edadInfoService.getTexto(clasificacion);
-  }
-
-  getEdadMinima(clasificacion: string): number {
-    return this.edadInfoService.getEdadMinima(clasificacion);
+    return textos[clasificacion] || clasificacion;
   }
 }

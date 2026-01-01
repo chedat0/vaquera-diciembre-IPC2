@@ -1,0 +1,39 @@
+<div class="container">
+    <h1>Gestión de Jugadores</h1>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <div class="search-box">
+        <input type="text" placeholder="Buscar por nickname..." [(ngModel)]="busqueda" (input)="buscar()" />
+    </div>
+
+    <div *ngIf="cargando" class="loading">Buscando...</div>
+
+    <table *ngIf="!cargando && jugadores.length > 0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nickname</th>
+                <th>Correo</th>
+                <th>País</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let jugador of jugadores">
+                <td>{{jugador.idUsuario}}</td>
+                <td>{{jugador.nickname}}</td>
+                <td>{{jugador.correo}}</td>
+                <td>{{jugador.pais || 'N/A'}}</td>
+                <td>
+                    <button class="btn-danger" (click)="banear(jugador)">Banear (Eliminar Cuenta)</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div *ngIf="!cargando && jugadores.length === 0" class="empty">
+        {{busqueda ? 'No se encontraron jugadores' : 'Use el buscador para encontrar jugadores'}}
+    </div>
+</div>

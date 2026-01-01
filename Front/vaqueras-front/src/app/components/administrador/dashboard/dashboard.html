@@ -1,0 +1,57 @@
+<div class="dashboard-container">
+  <div class="header">
+    <h1>🎛️ Panel de Administración</h1>
+    <p>Bienvenido al panel de control administrativo</p>
+  </div>
+
+  <div *ngIf="cargando" class="loading">Cargando estadísticas...</div>
+
+  <div *ngIf="!cargando">
+    <!-- Estadísticas -->
+    <div class="estadisticas-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">🎮</div>
+        <div class="stat-info">
+          <h3>{{ estadisticas.totalJuegos }}</h3>
+          <p>Juegos en Plataforma</p>
+        </div>
+      </div>
+
+      <div class="stat-card green">
+        <div class="stat-icon">📁</div>
+        <div class="stat-info">
+          <h3>{{ estadisticas.totalCategorias }}</h3>
+          <p>Categorías</p>
+        </div>
+      </div>
+
+      <div class="stat-card orange">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <h3>{{ estadisticas.comisionGlobal }}%</h3>
+          <p>Comisión Global</p>
+        </div>
+      </div>
+
+      <div class="stat-card purple">
+        <div class="stat-icon">🏢</div>
+        <div class="stat-info">
+          <h3>{{ estadisticas.empresasConComision }}</h3>
+          <p>Empresas con Comisión Especial</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="acciones-section">
+      <h2>⚡ Acciones Rápidas</h2>
+      <div class="acciones-grid">
+        <div *ngFor="let accion of accionesRapidas" class="accion-card" (click)="navegar(accion.ruta)"
+          [style.border-left-color]="accion.color">
+          <div class="accion-icon">{{ accion.icono }}</div>
+          <div class="accion-titulo">{{ accion.titulo }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

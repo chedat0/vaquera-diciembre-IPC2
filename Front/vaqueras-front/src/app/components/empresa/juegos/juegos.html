@@ -1,0 +1,66 @@
+<div class="container">
+    <div class="header">
+        <h1>🎮 Mis Juegos</h1>
+        <button class="btn-primary" (click)="crearJuego()"> Crear Nuevo Juego</button>
+    </div>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <div *ngIf="cargando" class="loading">Cargando...</div>
+
+    <div *ngIf="!cargando" class="juegos-grid">
+        <div *ngFor="let juego of juegos" class="juego-card">
+            <div class="juego-header">
+                <h3>{{juego.titulo}}</h3>
+                <span class="precio">\${{juego.precio}}</span>
+            </div>
+
+            <p class="descripcion">{{juego.descripcion}}</p>
+
+            <div class="juego-meta">
+                <span class="badge">{{juego.clasificacionEdad}}</span>
+                <span class="comentarios">💬 Comentarios: {{juego.activo ? 'ON' : 'OFF'}}</span>
+            </div>
+
+            <div class="juego-actions">
+                <button class="btn-edit" (click)="editar(juego)"> Editar</button>
+                <button class="btn-toggle" (click)="toggleComentarios(juego)">
+                    {{juego.activo ? ' Desactivar' : ' Activar'}} Comentarios
+                </button>
+                <button class="btn-delete" (click)="eliminar(juego)"> Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="!cargando && juegos.length === 0" class="empty">
+        No tienes juegos publicados. ¡Crea tu primer juego!
+    </div>
+
+    <!-- Modal Editar -->
+    <div *ngIf="mostrarModal" class="modal" (click)="cerrarModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <h2>Editar Juego</h2>
+
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" [(ngModel)]="juegoEditando.titulo" />
+            </div>
+
+            <div class="form-group">
+                <label>Precio</label>
+                <input type="number" [(ngModel)]="juegoEditando.precio" step="0.01" />
+            </div>
+
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea [(ngModel)]="juegoEditando.descripcion" rows="4"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+                <button class="btn-primary" (click)="guardarCambios()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,68 @@
+<div class="container">
+    <div class="header">
+        <h1>👥 Usuarios de la Empresa</h1>
+        <button class="btn-primary" (click)="abrirFormulario()">➕ Agregar Usuario</button>
+    </div>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <div *ngIf="cargando" class="loading">Cargando...</div>
+
+    <table *ngIf="!cargando && usuarios.length > 0">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Fecha Nacimiento</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let usuario of usuarios">
+                <td>{{usuario.nombre}}</td>
+                <td>{{usuario.correo}}</td>
+                <td>{{usuario.fechaNacimiento}}</td>
+                <td>
+                    <button class="btn-icon" (click)="eliminar(usuario)" title="Eliminar">🗑️</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div *ngIf="!cargando && usuarios.length === 0" class="empty">No hay usuarios registrados</div>
+
+    <!-- Modal -->
+    <div *ngIf="mostrarFormulario" class="modal" (click)="cerrarFormulario()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <h2>Agregar Usuario</h2>
+
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" [(ngModel)]="nuevoUsuario.nombre" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Correo *</label>
+                <input type="email" [(ngModel)]="nuevoUsuario.correo" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Fecha Nacimiento *</label>
+                <input type="date" [(ngModel)]="nuevoUsuario.fechaNacimiento" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña *</label>
+                <input type="password" [(ngModel)]="nuevoUsuario.password" [disabled]="procesando" />
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarFormulario()" [disabled]="procesando">Cancelar</button>
+                <button class="btn-primary" (click)="guardar()" [disabled]="procesando">
+                    {{procesando ? 'Guardando...' : 'Guardar'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

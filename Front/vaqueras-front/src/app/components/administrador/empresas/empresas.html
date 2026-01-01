@@ -1,0 +1,65 @@
+<div class="container">
+    <div class="header">
+        <h1>🏢 Gestión de Empresas</h1>
+        <button class="btn-primary" (click)="abrirFormulario()" [disabled]="procesando">
+            ➕ Nueva Empresa
+        </button>
+    </div>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <div *ngIf="cargando" class="loading">Cargando...</div>
+
+    <table *ngIf="!cargando && empresas.length > 0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let empresa of empresas">
+                <td>{{empresa.idEmpresa}}</td>
+                <td>{{empresa.nombre}}</td>
+                <td>
+                    <span *ngIf="empresa.activa" class="badge success">Activa</span>
+                    <span *ngIf="!empresa.activa" class="badge secondary">Inactiva</span>
+                </td>
+                <td>
+                    <button class="btn-icon" (click)="editar(empresa)">✏️</button>
+                    <button class="btn-icon" (click)="eliminar(empresa)">🗑️</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div *ngIf="!cargando && empresas.length === 0" class="empty">No hay empresas</div>
+
+    <div *ngIf="mostrarFormulario" class="modal" (click)="cerrarFormulario()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <h2>{{modoEdicion ? 'Editar' : 'Nueva'}} Empresa</h2>
+
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" [(ngModel)]="empresaActual.nombre" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" [(ngModel)]="empresaActual.activa" [disabled]="procesando" />
+                    Empresa activa
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarFormulario()" [disabled]="procesando">Cancelar</button>
+                <button class="btn-primary" (click)="guardar()" [disabled]="procesando">
+                    {{procesando ? 'Guardando...' : 'Guardar'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

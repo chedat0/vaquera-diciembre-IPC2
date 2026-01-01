@@ -1,0 +1,294 @@
+.biblioteca-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.header {
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: #f5f5f5;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+}
+
+.stat-item.prestados {
+    border-color: #ff9800;
+    background: #fff3e0;
+}
+
+.stat-label {
+    display: block;
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    display: block;
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tab {
+    padding: 1rem 2rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab:hover {
+    color: #333;
+    background: #f5f5f5;
+}
+
+.tab.active {
+    color: #2196f3;
+    border-bottom-color: #2196f3;
+}
+
+
+.search-section {
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    width: 100%;
+    max-width: 500px;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.alert-error {
+    background-color: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.alert-success {
+    background-color: #efe;
+    color: #3c3;
+    border: 1px solid #cfc;
+}
+
+.juegos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .juegos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.juego-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.juego-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.juego-card.prestado {
+    border-color: #ff9800;
+    background: linear-gradient(to bottom, #fff3e0 0%, white 20%);
+}
+
+.juego-card.instalado {
+    border-color: #4caf50;
+}
+
+.juego-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.juego-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.25rem;
+    flex: 1;
+}
+
+.badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-end;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-prestado {
+    background: #ff9800;
+    color: white;
+}
+
+.badge-propio {
+    background: #2196f3;
+    color: white;
+}
+
+.badge-instalado {
+    background: #4caf50;
+    color: white;
+}
+
+.juego-info {
+    margin-bottom: 1rem;
+}
+
+.juego-info p {
+    margin: 0.5rem 0;
+    color: #666;
+}
+
+.juego-info strong {
+    color: #333;
+}
+
+.juego-acciones {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.nota-prestado {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background: #fff3e0;
+    border-left: 3px solid #ff9800;
+    border-radius: 4px;
+}
+
+.nota-prestado small {
+    color: #e65100;
+    font-weight: 500;
+}
+
+
+.btn {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: #2196f3;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.btn-success {
+    background: #4caf50;
+    color: white;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
+}
+
+
+.loading {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #757575;
+    font-size: 1.1rem;
+    font-style: italic;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #757575;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin: 0;
+}

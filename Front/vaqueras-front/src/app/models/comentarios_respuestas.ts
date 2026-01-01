@@ -1,31 +1,34 @@
 export interface Comentario {
-    idComentario: number;
-    idUsuario: number;
+    idComentario?: number;
     idJuego: number;
+    idUsuario: number;
     contenido: string;
-    fechaComentario: string;
-    nicknameUsuario?: string;
+    calificacion: number; 
+    fecha: string; // YYYY-MM-DD
+    visible?: boolean;
+    nombreUsuario?: string;
     tituloJuego?: string;
+    cantidadRespuestas?: number;
     respuestas?: Respuesta[];
 }
 
-export interface CreateComentarioRequest {
-    idUsuario: number;
-    idJuego: number;
-    contenido: string;
-}
-
 export interface Respuesta {
-    idRespuesta: number;
+    idRespuesta?: number;
     idComentario: number;
     idUsuario: number;
     contenido: string;
-    fechaRespuesta: string;
-    nicknameUsuario?: string;
+    fecha: string;
+    nombreUsuario?: string;
 }
 
-export interface CreateRespuestaRequest {
-    idComentario: number;
-    idUsuario: number;
-    contenido: string;
+export interface PromedioCalificacion {
+    idJuego: number;
+    promedioCalificacion: number;
+    totalComentarios: number;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data?: T;
 }

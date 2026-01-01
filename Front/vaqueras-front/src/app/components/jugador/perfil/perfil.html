@@ -1,0 +1,133 @@
+<div class="perfil-container">
+    <!-- Header -->
+    <div class="header">
+        <h1>👤 Mi Perfil</h1>
+    </div>
+
+    <!-- Mensajes -->
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <!-- Loading -->
+    <div *ngIf="cargando" class="loading">
+        Cargando perfil...
+    </div>
+
+    <!-- Perfil -->
+    <div *ngIf="!cargando && perfil" class="perfil-content">
+
+        <!-- Vista Normal -->
+        <div *ngIf="!modoEdicion" class="perfil-card">
+
+            <!-- Avatar -->
+            <div class="avatar-section">
+                <div class="avatar">
+                    {{ perfil.nickname.charAt(0).toUpperCase() }}
+                </div>
+                <h2>{{ perfil.nickname }}</h2>
+                <p class="rol-badge">Jugador</p>
+            </div>
+
+            <!-- Información -->
+            <div class="info-section">
+                <div class="info-item">
+                    <div class="info-label">📧 Correo Electrónico</div>
+                    <div class="info-value">{{ perfil.correo }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">🎂 Fecha de Nacimiento</div>
+                    <div class="info-value">{{ formatearFecha(perfil.fechaNacimiento) }} ({{ calcularEdad() }} años)
+                    </div>
+                </div>
+
+                <div class="info-item" *ngIf="perfil.telefono">
+                    <div class="info-label">📱 Teléfono</div>
+                    <div class="info-value">{{ perfil.telefono }}</div>
+                </div>
+
+                <div class="info-item" *ngIf="perfil.pais">
+                    <div class="info-label">🌎 País</div>
+                    <div class="info-value">{{ perfil.pais }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">📚 Biblioteca</div>
+                    <div class="info-value">
+                        <span *ngIf="perfil.bibliotecaPublica" class="badge badge-success">
+                            ✓ Pública (visible para otros)
+                        </span>
+                        <span *ngIf="!perfil.bibliotecaPublica" class="badge badge-secondary">
+                            🔒 Privada
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="acciones-section">
+                <button class="btn btn-primary" (click)="activarModoEdicion()">
+                    ✏️ Editar Perfil
+                </button>
+            </div>
+        </div>
+
+        <!-- Modo Edición -->
+        <div *ngIf="modoEdicion" class="perfil-card edicion">
+            <h2>✏️ Editar Perfil</h2>
+
+            <form class="form-edicion">
+                <div class="form-group">
+                    <label>Nickname *</label>
+                    <input type="text" class="form-control" [(ngModel)]="perfilEditado.nickname" name="nickname"
+                        placeholder="Tu nombre de usuario" [disabled]="procesando" required />
+                    <small class="form-hint">Mínimo 3 caracteres</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="tel" class="form-control" [(ngModel)]="perfilEditado.telefono" name="telefono"
+                        placeholder="Ej: +502 1234-5678" [disabled]="procesando" />
+                </div>
+
+                <div class="form-group">
+                    <label>País</label>
+                    <input type="text" class="form-control" [(ngModel)]="perfilEditado.pais" name="pais"
+                        placeholder="Ej: Guatemala" [disabled]="procesando" />
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="perfilEditado.bibliotecaPublica" name="bibliotecaPublica"
+                            [disabled]="procesando" />
+                        Hacer mi biblioteca pública (otros usuarios pueden ver tus juegos)
+                    </label>
+                </div>
+
+                <div class="info-box">
+                    <p>ℹ️ <strong>Nota:</strong> El correo y la fecha de nacimiento no se pueden modificar.</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()" [disabled]="procesando">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" (click)="guardarCambios()" [disabled]="procesando">
+                        <span *ngIf="!procesando">💾 Guardar Cambios</span>
+                        <span *ngIf="procesando">⏳ Guardando...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="info-adicional">
+            <h3>💡 Acerca de tu Perfil</h3>
+            <ul>
+                <li><strong>Nickname:</strong> Es tu identificación en la plataforma</li>
+                <li><strong>Biblioteca Pública:</strong> Permite que otros jugadores vean tu colección</li>
+                <li><strong>Privacidad:</strong> Tu correo nunca será compartido con otros usuarios</li>
+            </ul>
+        </div>
+    </div>
+</div>

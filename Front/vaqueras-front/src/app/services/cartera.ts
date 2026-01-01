@@ -1,54 +1,52 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import { backEnd } from '../app.config';
-import { Cartera,Transaccion, RecargaRequest } from '../models/cartera_transaccion';
-import { ApiResponse } from '../models/enums';
+import { Cartera, Recarga, Transaccion, FiltroTransacciones, ApiResponse } from '../models/cartera_transaccion';
 
 @Injectable({
     providedIn: 'root',
 })
+
 export class CarteraService {
     private apiUrl = `${backEnd.apiUrl}/cartera`;
 
     constructor(private http: HttpClient) { }
+    
+    obtenerCartera(idUsuario: number): Observable<ApiResponse<Cartera>> {
+        return this.http.get<ApiResponse<Cartera>>(`${this.apiUrl}/${idUsuario}`);
+    }
 
-    //obtiene la cartera de un usuario
-    getCartera(idUsuario: number): Observable<Cartera> {
-        return this.http.get<ApiResponse<Cartera>>(`${this.apiUrl}/${idUsuario}`).pipe(
-            map(response => response.data as Cartera)
+    crearCartera(idUsuario: number): Observable<ApiResponse<Cartera>> {
+        return this.http.post<ApiResponse<Cartera>>(
+            `${this.apiUrl}/crear`,
+            { idUsuario }
         );
     }
 
-    //realiza una recarga
-    recargar(request: RecargaRequest): Observable<ApiResponse<Cartera>> {
+    recargar(recarga: Recarga): Observable<ApiResponse<Cartera>> {
         return this.http.post<ApiResponse<Cartera>>(
             `${this.apiUrl}/recargar`,
-            request
+            recarga
         );
     }
+    
+    obtenerTransacciones(idUsuario: number, filtros?: FiltroTransacciones): Observable<ApiResponse<Transaccion[]>> {
+        let params = new HttpParams();
 
-    //obtiene el historial de transacciones
-    getTransacciones(idUsuario: number): Observable<Transaccion[]> {
+        if (filtros?.tipo) {
+            params = params.set('tipo', filtros.tipo);
+        }
+        if (filtros?.fechaInicio) {
+            params = params.set('fechaInicio', filtros.fechaInicio);
+        }
+        if (filtros?.fechaFin) {
+            params = params.set('fechaFin', filtros.fechaFin);
+        }
+
         return this.http.get<ApiResponse<Transaccion[]>>(
-            `${this.apiUrl}/${idUsuario}/transacciones`
-        ).pipe(
-            map(response => response.data || [])
-        );
-    }
-
-    //obtiene el saldo de la cartera 
-    getSaldo(idUsuario: number): Observable<number> {
-        return this.getCartera(idUsuario).pipe(
-            map(cartera => cartera.saldo)
-        );
-    }
-
-    //verifica si un usuario tiene saldo suficiente
-    tieneSaldoSuficiente(idUsuario: number, monto: number): Observable<boolean> {
-        return this.getSaldo(idUsuario).pipe(
-            map(saldo => saldo >= monto)
+            `${this.apiUrl}/${idUsuario}/transacciones`,
+            { params }
         );
     }
 }

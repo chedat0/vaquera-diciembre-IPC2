@@ -88,7 +88,7 @@ login(correo: string, password: string): Observable<ApiResponse<Usuario>> {
         this.router.navigate(['/empresa/dashboard']);
         break;
       case Rol.JUGADOR:
-        this.router.navigate(['/jugador/dashboard']);
+        this.router.navigate(['/jugador/tienda']);
         break;
       default:
         this.router.navigate(['/login']);

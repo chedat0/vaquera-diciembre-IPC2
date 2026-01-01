@@ -63,7 +63,7 @@ public class InvitacionServlet extends HttpServlet{
                     "Debe especificar la ruta");
                 return;
             }
-
+            
             String[] pathParts = pathInfo.split("/");
             
             if (pathParts.length >= 3 && pathParts[1].equals("usuario")) {

@@ -14,6 +14,22 @@ export const routes: Routes = [
                 path: 'jugador/tienda',
                 loadComponent: () => import('./components/jugador/tienda/tienda')
                     .then(m => m.Tienda)
+            },
+            {
+                path: 'dashboard',
+                loadComponent: () => import('./components/administrador/dashboard/dashboard')
+                    .then(m => m.DashboardAdmin)
+            },
+            {
+                path: 'categorias',
+                loadComponent: () => import('./components/administrador/categorias/categorias')
+                    .then(m => m.Categorias)
+            },
+            {
+                path: 'comprar/:id',
+                loadComponent: ()=> import ('./components/jugador/comprar/comprar')
+                .then(m => m.Comprar),
+                canActivate: [authGuard]
             }
 
     /*

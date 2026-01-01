@@ -15,7 +15,7 @@ import { Categoria } from '../../../models/categoria';
 export class Categorias implements OnInit{
   categorias: Categoria[] = [];
   categoriaEditando: Categoria | null = null;
-  nuevaCategoria: Categoria = { nombre: '', activado: true };
+  nuevaCategoria: Categoria = { nombre: '', activa: true };
   mostrarFormulario: boolean = false;
 
   constructor(private categoriaService: CategoriaService) {}
@@ -25,7 +25,7 @@ export class Categorias implements OnInit{
   }
 
   cargarCategorias(): void {
-    this.categoriaService.listarTodas().subscribe({
+    this.categoriaService.obtenerTodas().subscribe({
       next: (response) => {
         if (response.success && Array.isArray(response.data)) {
           this.categorias = response.data;
@@ -41,7 +41,7 @@ export class Categorias implements OnInit{
         if (response.success) {
           alert('Categoría creada exitosamente');
           this.cargarCategorias();
-          this.nuevaCategoria = { nombre: '', activado: true };
+          this.nuevaCategoria = { nombre: '', activa: true };
           this.mostrarFormulario = false;
         } else {
           alert(response.message);

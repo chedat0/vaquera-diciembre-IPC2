@@ -1,0 +1,56 @@
+<div class="reportes-container">
+    <div class="header">
+        <h1>📊 Reportes de Empresa</h1>
+        <p>{{ filtroEmpresa.empresaNombre }}</p>
+    </div>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+    <div *ngIf="exito" class="alert alert-success">{{ exito }}</div>
+
+    <div class="filtro-fechas-global">
+        <h3>📅 Filtro de Fechas</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Fecha Inicio:</label>
+                <input type="date" class="form-control" [(ngModel)]="filtroEmpresa.fechaInicio"
+                    [disabled]="procesando" />
+            </div>
+            <div class="form-group">
+                <label>Fecha Fin:</label>
+                <input type="date" class="form-control" [(ngModel)]="filtroEmpresa.fechaFin" [disabled]="procesando" />
+            </div>
+        </div>
+    </div>
+
+    <div class="reportes-grid">
+        <div class="reporte-card">
+            <div class="reporte-icon">💰</div>
+            <h3>Ventas Propias</h3>
+            <p>Reporte de ventas de los juegos de tu empresa en un período.</p>
+            <span class="tag">Requiere fechas</span>
+            <button class="btn btn-primary" (click)="generarVentasEmpresa()" [disabled]="procesando">
+                {{ procesando ? '⏳ Generando...' : '📄 Generar PDF' }}
+            </button>
+        </div>
+
+        <div class="reporte-card">
+            <div class="reporte-icon">⭐</div>
+            <h3>Feedback de Juegos</h3>
+            <p>Comentarios y calificaciones de tus juegos.</p>
+            <span class="tag tag-instant">Instantáneo</span>
+            <button class="btn btn-primary" (click)="generarFeedbackEmpresa()" [disabled]="procesando">
+                {{ procesando ? '⏳ Generando...' : '📄 Generar PDF' }}
+            </button>
+        </div>
+
+        <div class="reporte-card">
+            <div class="reporte-icon">🏆</div>
+            <h3>Top 5 Juegos Más Vendidos</h3>
+            <p>Los 5 juegos más exitosos de tu empresa en un período.</p>
+            <span class="tag">Requiere fechas</span>
+            <button class="btn btn-primary" (click)="generarTop5JuegosEmpresa()" [disabled]="procesando">
+                {{ procesando ? '⏳ Generando...' : '📄 Generar PDF' }}
+            </button>
+        </div>
+    </div>
+</div>

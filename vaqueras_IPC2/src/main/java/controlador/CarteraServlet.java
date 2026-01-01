@@ -14,6 +14,7 @@ import dtos.RecargaDTO;
 import dtos.VerificadorDTO;
 import com.mycompany.vaqueras_ipc2.modelo.Cartera;
 import com.mycompany.vaqueras_ipc2.modelo.Transaccion;
+import dtos.TransaccionDTO;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -23,6 +24,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 /**
  *
@@ -71,6 +74,11 @@ public class CarteraServlet extends HttpServlet{
             }
             
             int idUsuario = Integer.parseInt(pathParts[1]);
+            
+             if (pathParts.length >= 3 && pathParts[2].equals("transacciones")) {
+                obtenerTransacciones(request, response, idUsuario);
+                return;
+            }
             
             Cartera cartera = carteraDAO.obtenerCartera(idUsuario);
             
@@ -227,6 +235,71 @@ public class CarteraServlet extends HttpServlet{
         
         enviarRespuesta(response, HttpServletResponse.SC_OK, 
             true, "Recarga realizada correctamente", respuestaDTO);
+    }
+    
+    private void obtenerTransacciones(HttpServletRequest request,
+            HttpServletResponse response,
+            int idUsuario) throws IOException {
+
+        String tipo = request.getParameter("tipo");
+        String fechaInicio = request.getParameter("fechaInicio");
+        String fechaFin = request.getParameter("fechaFin");
+
+        List<Transaccion> transacciones;
+
+        try {
+            // Filtrar por fechas si se especifican
+            if (fechaInicio != null && fechaFin != null) {
+                LocalDate inicio = LocalDate.parse(fechaInicio);
+                LocalDate fin = LocalDate.parse(fechaFin);
+                transacciones = transaccionDAO.obtenerTransaccionesPorFechas(
+                        idUsuario, inicio, fin);
+            } // Filtrar por tipo si se especifica
+            else if (tipo != null && !tipo.trim().isEmpty()) {
+                Transaccion.TipoTransaccion tipoEnum
+                        = Transaccion.TipoTransaccion.valueOf(tipo.toUpperCase());
+                transacciones = transaccionDAO.obtenerTransaccionesPorTipo(
+                        idUsuario, tipoEnum);
+            } // Sin filtros: todas las transacciones
+            else {
+                transacciones = transaccionDAO.obtenerTransaccionesPorUsuario(idUsuario);
+            }
+
+            // Convertir a DTOs
+            List<TransaccionDTO> transaccionesDTO = new ArrayList<>();
+            for (Transaccion t : transacciones) {
+                TransaccionDTO dto = new TransaccionDTO();
+                dto.setIdTransaccion(t.getIdTransaccion());
+                dto.setIdUsuario(t.getIdUsuario());
+                dto.setMonto(t.getMonto());
+                dto.setTipo(t.getTipo().name());
+                dto.setFecha(t.getFecha().toString());
+
+                if (t.getComisionAplicada() != null) {
+                    dto.setComisionAplicada(t.getComisionAplicada());
+                }
+                if (t.getGananciaEmpresa() != null) {
+                    dto.setGananciaEmpresa(t.getGananciaEmpresa());
+                }
+                if (t.getGananciaPlataforma() != null) {
+                    dto.setGananciaPlataforma(t.getGananciaPlataforma());
+                }
+
+                transaccionesDTO.add(dto);
+            }
+
+            enviarRespuesta(response, HttpServletResponse.SC_OK,
+                    true, "Transacciones obtenidas", transaccionesDTO);
+
+        } catch (IllegalArgumentException e) {
+            enviarError(response, HttpServletResponse.SC_BAD_REQUEST,
+                    "Tipo de transacción inválido. Use RECARGA o COMPRA");
+        } catch (Exception e) {
+            System.err.println("Error al obtener transacciones: " + e.getMessage());
+            e.printStackTrace();
+            enviarError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Error al obtener transacciones");
+        }
     }
     
     private void enviarRespuesta(HttpServletResponse response, int statusCode, 
