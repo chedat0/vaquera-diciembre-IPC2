@@ -18,6 +18,7 @@ public class Usuario {
     private String pais;
     private Integer idRol;
     private boolean bibliotecaPublica;
+    private Integer idEmpresa;
     
     public Usuario(){}
     
@@ -62,4 +63,6 @@ public class Usuario {
     public boolean getBibliotecaPublica (){return bibliotecaPublica = true;}
     public void setBibliotecaPublica (boolean biblioteca_publica) {this.bibliotecaPublica = true;}
 
+    public Integer getIdEmpresa() { return idEmpresa; }
+    public void setIdEmpresa(Integer idEmpresa) { this.idEmpresa = idEmpresa; }
 }
