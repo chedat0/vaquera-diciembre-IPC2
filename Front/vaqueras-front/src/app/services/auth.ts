@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { backEnd } from '../app.config';
 import { Usuario, LoginRequest, RegistroRequest } from '../models/usuario';
+import { UsuarioEmpresa } from '../models/empresa';
 import { ApiResponse,Rol } from '../models/enums';
 
 
@@ -88,7 +89,7 @@ login(correo: string, password: string): Observable<ApiResponse<Usuario>> {
         this.router.navigate(['/empresa/dashboard']);
         break;
       case Rol.JUGADOR:
-        this.router.navigate(['/jugador/tienda']);
+        this.router.navigate(['/jugador/dashboard']);
         break;
       default:
         this.router.navigate(['/login']);

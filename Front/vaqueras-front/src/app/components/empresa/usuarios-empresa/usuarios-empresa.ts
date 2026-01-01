@@ -11,7 +11,7 @@ import { AuthService } from '../../../services/auth';
     templateUrl: './usuarios-empresa.html',
     styleUrl: './usuarios-empresa.css'
 })
-export class UsuariosEmpresaComponent implements OnInit {
+export class UsuariosEmpresa implements OnInit {
     usuarios: UsuarioEmpresa[] = [];
     nuevoUsuario: UsuarioEmpresa = { correo: '', nombre: '', fechaNacimiento: '', password: '', idEmpresa: 0 };
 

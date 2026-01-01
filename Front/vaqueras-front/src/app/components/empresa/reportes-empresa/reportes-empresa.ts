@@ -11,7 +11,7 @@ import { AuthService } from '../../../services/auth';
     templateUrl: './reportes-empresa.html',
     styleUrl: './reportes-empresa.css'
 })
-export class ReportesEmpresaComponent implements OnInit {
+export class ReportesEmpresa implements OnInit {
 
     filtroEmpresa: FiltroEmpresa = {
         idEmpresa: 0,

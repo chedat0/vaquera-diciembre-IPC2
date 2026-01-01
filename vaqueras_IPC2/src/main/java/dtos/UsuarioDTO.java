@@ -14,6 +14,8 @@ public class UsuarioDTO {
     private String correo;
     private String pais;
     private Integer idRol;
+    private Integer idEmpresa;
+    private String nombreEmpresa;
     
     // Constructor, getters y setters
     public UsuarioDTO(Integer idUsuario, String nickname, String correo,String pais, Integer idRol) {
@@ -39,4 +41,11 @@ public class UsuarioDTO {
     
     public Integer getIdRol() { return idRol; }
     public void setIdRol(Integer idRol) { this.idRol = idRol; }
+    
+    public Integer getIdEmpresa() {return idEmpresa;}
+    public void setIdEmpresa(Integer idEmpresa) {this.idEmpresa = idEmpresa;}
+    
+    public String getNombreEmpresa() {return nombreEmpresa;}
+    
+    public void setNombreEmpresa(String nombreEmpresa) {this.nombreEmpresa = nombreEmpresa;}
 }

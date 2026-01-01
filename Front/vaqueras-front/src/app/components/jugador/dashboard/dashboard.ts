@@ -88,6 +88,10 @@ export class DashboardJugador implements OnInit {
         });
     }
 
+    cerrarSesion() {
+        this.authService.logout();
+    }
+
     navegar(ruta: string): void {
         this.router.navigate([ruta]);
     }

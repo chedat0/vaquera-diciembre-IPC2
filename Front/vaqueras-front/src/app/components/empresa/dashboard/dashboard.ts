@@ -38,6 +38,10 @@ export class DashboardEmpresa implements OnInit {
         });
     }
 
+    cerrarSesion() {
+        this.authService.logout();
+    }
+    
     navegar(ruta: string): void {
         this.router.navigate([ruta]);
     }

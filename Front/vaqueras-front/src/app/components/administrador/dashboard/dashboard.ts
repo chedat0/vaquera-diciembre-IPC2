@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { JuegoService } from '../../../services/juego';
 import { CategoriaService } from '../../../services/categoria';
 import { ComisionService } from '../../../services/comision';
+import { AuthService } from '../../../services/auth';
 
 @Component({
   selector: 'app-dashboard-admin',
@@ -25,7 +26,8 @@ export class DashboardAdmin implements OnInit {
     { titulo: 'Gestionar Categorías', icono: '📁', ruta: '/admin/categorias', color: '#2196f3' },
     { titulo: 'Gestionar Comisiones', icono: '💰', ruta: '/admin/comisiones', color: '#4caf50' },
     { titulo: 'Ver Reportes', icono: '📊', ruta: '/admin/reportes', color: '#ff9800' },
-    { titulo: 'Gestionar Juegos', icono: '🎮', ruta: '/admin/juegos', color: '#9c27b0' }
+    { titulo: 'Gestionar Juegos', icono: '🎮', ruta: '/admin/juegos', color: '#9c27b0' },
+    { titulo: 'Cerrar Sesión', ruta: '/login', color: '#9c27b0' }
   ];
 
   cargando = true;
@@ -34,7 +36,8 @@ export class DashboardAdmin implements OnInit {
     private juegoService: JuegoService,
     private categoriaService: CategoriaService,
     private comisionService: ComisionService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -113,6 +116,10 @@ export class DashboardAdmin implements OnInit {
       });
     });
   }
+
+  cerrarSesion() {
+        this.authService.logout();
+    }
 
   navegar(ruta: string): void {
     this.router.navigate([ruta]);

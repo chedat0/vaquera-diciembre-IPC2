@@ -1,0 +1,194 @@
+<div class="container">
+    <div class="header">
+        <h1> Gestión de Banners</h1>
+        <button class="btn-primary" (click)="abrirModalCrear()" [disabled]="procesando">
+            Nuevo Banner
+        </button>
+    </div>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button [class.active]="vistaActual === 'todos'" (click)="vistaActual = 'todos'; cargar()">
+            📋 Todos ({{banners.length}})
+        </button>
+        <button [class.active]="vistaActual === 'activos'" (click)="vistaActual = 'activos'; cargarActivos()">
+            ✅ Activos ({{bannersActivos.length}})
+        </button>
+        <button [class.active]="vistaActual === 'sugerencias'"
+            (click)="vistaActual = 'sugerencias'; cargarSugerencias()">
+            💡 Sugerencias
+        </button>
+    </div>
+
+    <div *ngIf="cargando" class="loading">Cargando...</div>
+
+    <!-- Vista: Todos los banners -->
+    <div *ngIf="!cargando && vistaActual === 'todos'" class="banners-grid">
+        <div *ngFor="let banner of banners" class="banner-card">
+            <div class="banner-image">
+                <img [src]="getUrlImagen(banner.idBanner!)" alt="Banner {{banner.ordenPrioridad}}"
+                    (error)="onImageError($event)" />
+                <span class="badge-posicion">Pos. {{banner.ordenPrioridad}}</span>
+                <span class="badge-estado" [class.activo]="banner.activo">
+                    {{banner.activo ? 'ACTIVO' : 'INACTIVO'}}
+                </span>
+            </div>
+
+            <div class="banner-info">
+                <h3>{{banner.tituloJuego}}</h3>                
+
+                <div class="banner-fechas" *ngIf="banner.fechaCreacion || banner.fechaFin">
+                    <span *ngIf="banner.fechaCreacion"> Desde: {{banner.fechaCreacion}}</span>
+                    <span *ngIf="banner.fechaCreacion"> Hasta: {{banner.fechaFin}}</span>
+                </div>
+            </div>
+
+            <div class="banner-actions">
+                <button class="btn-icon" (click)="abrirModalEditar(banner)" title="Editar">✏️</button>
+                <button class="btn-icon" (click)="toggleEstado(banner)" title="Activar/Desactivar">
+                    {{banner.activo ? '🔴' : '✅'}}
+                </button>
+                <button class="btn-icon" (click)="abrirModalImagen(banner)" title="Cambiar imagen">🖼️</button>
+                <button class="btn-icon danger" (click)="eliminar(banner)" title="Eliminar">🗑️</button>
+            </div>
+        </div>
+
+        <div *ngIf="banners.length === 0" class="empty">
+            No hay banners. ¡Crea tu primer banner!
+        </div>
+    </div>
+
+    <!-- Vista: Solo activos -->
+    <div *ngIf="!cargando && vistaActual === 'activos'" class="banners-grid">
+        <div *ngFor="let banner of bannersActivos" class="banner-card active">
+            <div class="banner-image">
+                <img [src]="getUrlImagen(banner.idBanner!)" alt="Banner {{banner.ordenPrioridad}}"
+                    (error)="onImageError($event)" />
+                <span class="badge-posicion">Posición {{banner.ordenPrioridad}}</span>
+            </div>
+            <div class="banner-info">
+                <h3>{{banner.tituloJuego}}</h3>
+                <p>Este banner se muestra a los usuarios</p>
+            </div>
+        </div>
+
+        <div *ngIf="bannersActivos.length === 0" class="empty">
+            No hay banners activos
+        </div>
+    </div>
+
+    <!-- Vista: Sugerencias -->
+    <div *ngIf="!cargando && vistaActual === 'sugerencias'" class="sugerencias">
+        <div class="info-box">
+            <p><strong> Juegos sugeridos para crear banners</strong></p>
+            <p>Basado en el algoritmo de balance (ventas y calificación)</p>
+        </div>
+
+        <div class="juegos-sugeridos">
+            <div *ngFor="let juego of juegosSugeridos" class="juego-sugerido">
+                <div class="juego-info">
+                    <h4>{{juego.titulo}}</h4>
+                    <div class="stats">
+                        <span>⭐ {{juego.calificacionPromedio || 0}}</span>
+                        <span> {{juego.ventas || 0}} ventas</span>
+                        <span> Score: {{juego.scoreBalance | number:'1.2-2'}}</span>
+                    </div>
+                </div>
+                <button class="btn-primary" (click)="crearBannerDesdeJuego(juego)">
+                    Crear Banner
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="juegosSugeridos.length === 0" class="empty">
+            No hay sugerencias disponibles
+        </div>
+    </div>
+
+    <!-- Modal Crear/Editar Banner -->
+    <div *ngIf="mostrarModalForm" class="modal" (click)="cerrarModalForm()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <h2>{{modoEdicion ? 'Editar' : 'Nuevo'}} Banner</h2>
+
+            <div class="form-group" *ngIf="!modoEdicion">
+                <label>Juego</label>
+                <select [(ngModel)]="bannerActual.idJuego" [disabled]="procesando">
+                    <option value="">Seleccione un juego...</option>
+                    <option *ngFor="let juego of juegos" [value]="juego.idJuego">
+                        {{juego.titulo}} (⭐{{juego.calificacionPromedio || 0}})
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Posición</label>
+                <input type="number" [(ngModel)]="bannerActual.ordenPrioridad" min="1" [disabled]="procesando" />
+                <small class="hint">Posición en el carrusel</small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fecha Inicio</label>
+                    <input type="date" [(ngModel)]="bannerActual.fechaCreacion" [disabled]="procesando" />
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha Fin</label>
+                    <input type="date" [(ngModel)]="bannerActual.fechaFin" [disabled]="procesando" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox">
+                    <input type="checkbox" [(ngModel)]="bannerActual.activo" [disabled]="procesando" />
+                    Banner activo
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarModalForm()" [disabled]="procesando">
+                    Cancelar
+                </button>
+                <button class="btn-primary" (click)="guardar()" [disabled]="procesando">
+                    {{procesando ? 'Guardando...' : 'Guardar'}}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Subir Imagen -->
+    <div *ngIf="mostrarModalImagen" class="modal" (click)="cerrarModalImagen()">
+        <div class="modal-content small" (click)="$event.stopPropagation()">
+            <h2> Imagen del Banner</h2>
+            <p>Banner: <strong>{{bannerImagen?.tituloJuego}}</strong></p>
+
+            <div class="preview-actual" *ngIf="bannerImagen">
+                <p><strong>Imagen actual:</strong></p>
+                <img [src]="getUrlImagen(bannerImagen.idBanner!)" alt="Actual" (error)="onImageError($event)" />
+            </div>
+
+            <div class="form-group">
+                <label>Seleccionar nueva imagen</label>
+                <input type="file" (change)="seleccionarImagen($event)" accept="image/*" [disabled]="procesando" />
+                <small class="hint">Recomendado: 1920x400px, máximo 10MB</small>
+            </div>
+
+            <div class="preview-nueva" *ngIf="imagenSeleccionada">
+                <p><strong>Vista previa:</strong></p>
+                <img [src]="imagenSeleccionada.preview" alt="Preview" />
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarModalImagen()" [disabled]="procesando">
+                    Cancelar
+                </button>
+                <button class="btn-primary" (click)="subirImagen()" [disabled]="procesando || !imagenSeleccionada">
+                    {{procesando ? 'Subiendo...' : 'Subir Imagen'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

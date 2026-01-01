@@ -13,14 +13,14 @@
 
         <div class="stat-card green">
             <div class="icon"></div>
-            <h3>$\{{stats.saldoCartera.toFixed(2)}}</h3>
+            <h3>${{stats.saldoCartera.toFixed(2)}}</h3>
             <p>Saldo Disponible</p>
         </div>
 
         <div class="stat-card orange" (click)="navegar('/jugador/grupos')">
             <div class="icon"></div>
             <h3>{{stats.juegosDisponibles}}</h3>
-            <p>Juegos Disponibles</p>
+            <p>Grupo Familiar</p>
         </div>
     </div>
 
@@ -43,6 +43,10 @@
                 <div class="icon">⚙️</div>
                 <span>Mi Perfil</span>
             </div>
+        </div>
+        <div class="action-card logout" (click)="cerrarSesion()">
+            <div class="icon">🚪</div>
+            <span>Cerrar sesión</span>
         </div>
     </div>
 </div>

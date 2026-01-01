@@ -6,6 +6,8 @@ export interface Usuario {
     correo: string;
     pais?: string;
     idRol: Rol;
+    idEmpresa?: number;  // Se carga después para usuarios empresa
+    nombreEmpresa?: string;
     fechaNacimiento?: string;
     telefono?: string;
     bibliotecaPublica?: boolean;

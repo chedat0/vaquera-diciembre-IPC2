@@ -10,7 +10,7 @@ import { ReporteService } from '../../../services/reporte';
     templateUrl: './reportes-admin.html',
     styleUrl: './reportes-admin.css'
 })
-export class ReportesAdminComponent implements OnInit {
+export class ReportesAdmin implements OnInit {
 
     // Filtros para reportes con fechas
     filtroFechas = {

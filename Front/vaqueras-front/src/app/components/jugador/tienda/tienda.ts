@@ -19,7 +19,7 @@ import { BannerService } from '../../../services/banner';
 export class Tienda implements OnInit {
   juegos: Juego[] = [];
   juegosFiltrados: Juego[] = [];
-  juegosBanner: any[] = [];  // Ya vienen ordenados del backend
+  juegosBanner: any[] = [];  
   categorias: any[] = [];
   empresas: any[] = [];
 
@@ -56,26 +56,26 @@ export class Tienda implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatos();
-    this.iniciarCarrusel();
+    //this.iniciarCarrusel();
   }
 
   cargarDatos(): void {
     this.cargando = true;
         
-    this.bannerService.obtenerMejorBalance(5).subscribe({
+    /*this.bannerService.obtenerMejorBalance(5).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response && response.success) {
           this.juegosBanner = response.data || [];
         }
       },
       error: (err) => {
         console.error('Error al cargar banner:', err);
       }
-    });
+    });*/
         
-    this.juegoService.obtenerActivos().subscribe({
+    this.juegoService.obtenerTodos().subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response && response.success) {
           this.juegos = response.data || [];
           this.aplicarFiltros();
         }
@@ -90,15 +90,15 @@ export class Tienda implements OnInit {
         
     this.categoriaService.obtenerTodas().subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response && response.success) {
           this.categorias = response.data || [];
         }
       }
     });
         
     this.empresaService.obtenerTodas().subscribe({
-      next: (response) => {
-        if (response.success) {
+      next: (response ) => {
+        if (response && response.success) {
           this.empresas = response.data || [];
         }
       }

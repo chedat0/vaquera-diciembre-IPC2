@@ -11,7 +11,7 @@ import { AuthService } from '../../../services/auth';
     templateUrl: './perfil.html',
     styleUrl: './perfil.css'
 })
-export class PerfilJugadorComponent implements OnInit {
+export class PerfilJugadores implements OnInit {
 
     perfil: PerfilJugador | null = null;
     perfilEditado: Partial<PerfilJugador> = {};
@@ -116,6 +116,10 @@ export class PerfilJugadorComponent implements OnInit {
         }
 
         return edad;
+    }
+    
+    cerrarSesion() {
+        this.authService.logout();
     }
 
     formatearFecha(fecha: string): string {

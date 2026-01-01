@@ -51,7 +51,7 @@ export class BibliotecaComponent implements OnInit {
         this.instalacionService.obtenerDisponibles(this.usuarioActual.idUsuario).subscribe({
             next: (response) => {
                 if (response.success) {
-                    this.juegosDisponibles = response.data || [];
+                    this.juegosDisponibles = response.data || [];                    
                 } else {
                     this.error = response.message;
                 }

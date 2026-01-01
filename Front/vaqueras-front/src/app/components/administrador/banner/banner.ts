@@ -15,7 +15,7 @@ import { ImagenService } from '../../../services/imagen';
     styleUrl: './banner.css'
 })
 
-export class GestionBannersComponent implements OnInit {
+export class GestionBanners implements OnInit {
     banners: Banner[] = [];
     bannersActivos: Banner[] = [];
     juegos: Juego[] = [];

@@ -8,6 +8,7 @@ import daos.UsuarioDAO;
 import dtos.UsuarioDTO;
 import com.mycompany.vaqueras_ipc2.modelo.Usuario;
 import com.mycompany.vaqueras_ipc2.modelo.Encriptar; 
+import org.mindrot.jbcrypt.BCrypt;
 /**
  *
  * @author jeffm
@@ -21,17 +22,18 @@ public class UsuarioServicio {
     
     public boolean registrar(Usuario usuario) {
         
-        try {
-            //Permite encriptar la contraseña antes de guardarla
-            String passwordEncriptada = Encriptar.hashPassword(usuario.getPassword());
-            usuario.setPassword(passwordEncriptada);
-            
-            //aqui la guarda y envia a la base de datos
-            return usuarioDAO.crearUsuario(usuario);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (usuario == null || usuario.getPassword() == null) {
+            System.err.println("❌ Usuario o password no puede ser null");
             return false;
         }
+        
+        // ⭐ Hashear password con BCrypt
+        String passwordHash = BCrypt.hashpw(usuario.getPassword(), BCrypt.gensalt());
+        usuario.setPassword(passwordHash);
+        
+        // ⭐ Llamar al DAO (él se encarga de todo)
+        return usuarioDAO.registrarUsuario(usuario);
+    
     }
     // Autenticar usuario
     public UsuarioDTO autenticar(String correo, String password) {
@@ -41,7 +43,7 @@ public class UsuarioServicio {
 
             if (usuario == null) {
                 return null; // Usuario no encontrado
-            }     
+            }   
             
             // Verificar contraseña
             if (Encriptar.checkPassword(password, usuario.getPassword())) {

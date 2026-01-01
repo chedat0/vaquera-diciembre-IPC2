@@ -32,7 +32,7 @@ export class Login {
     this.cargando = true;
     this.error = '';
 
-    this.authService.login(this.correo, this.password).subscribe({
+    this.authService.login( this.correo, this.password ).subscribe({
       next: (response) => {
         if (response.success) {
           this.cargando = false;

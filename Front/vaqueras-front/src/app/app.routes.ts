@@ -10,29 +10,7 @@ export const routes: Routes = [
     { path: '', redirectTo: '/login', pathMatch: 'full' },
     { path: 'login', component: Login },
     { path: 'registro', component: Registro },
-    {
-                path: 'jugador/tienda',
-                loadComponent: () => import('./components/jugador/tienda/tienda')
-                    .then(m => m.Tienda)
-            },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./components/administrador/dashboard/dashboard')
-                    .then(m => m.DashboardAdmin)
-            },
-            {
-                path: 'categorias',
-                loadComponent: () => import('./components/administrador/categorias/categorias')
-                    .then(m => m.Categorias)
-            },
-            {
-                path: 'comprar/:id',
-                loadComponent: ()=> import ('./components/jugador/comprar/comprar')
-                .then(m => m.Comprar),
-                canActivate: [authGuard]
-            }
 
-    /*
     {
         path: 'admin',
         canActivate: [authGuard, roleGuard],
@@ -40,33 +18,43 @@ export const routes: Routes = [
         children: [
             {
                 path: 'dashboard',
-                loadComponent: () => import('./components/admin/dashboard/dashboard.component')
-                    .then(m => m.AdminDashboardComponent)
+                loadComponent: () => import('./components/administrador/dashboard/dashboard')
+                    .then(m => m.DashboardAdmin)
             },
             {
                 path: 'jugadores',
-                loadComponent: () => import('./components/admin/jugadores/jugadores.component')
-                    .then(m => m.JugadoresComponent)
+                loadComponent: () => import('./components/administrador/banear/banear')
+                    .then(m => m.BanearJugadores)
             },
             {
                 path: 'empresas',
-                loadComponent: () => import('./components/admin/empresas/empresas.component')
-                    .then(m => m.EmpresasComponent)
+                loadComponent: () => import('./components/administrador/empresas/empresas')
+                    .then(m => m.Empresas)
+            },
+            {
+                path: 'comisiones',
+                loadComponent: () => import ('./components/administrador/comisiones/comisiones')
+                .then(m => m.GestionComisionesComponent)
             },
             {
                 path: 'categorias',
-                loadComponent: () => import('./components/admin/categorias/categorias.component')
-                    .then(m => m.CategoriasComponent)
+                loadComponent: () => import('./components/administrador/categorias/categorias')
+                    .then(m => m.Categorias)
             },
             {
                 path: 'banners',
-                loadComponent: () => import('./components/admin/banners/banners.component')
-                    .then(m => m.BannersComponent)
+                loadComponent: () => import('./components/administrador/banner/banner')
+                    .then(m => m.GestionBanners)
             },
             {
                 path: 'reportes',
-                loadComponent: () => import('./components/admin/reportes/reportes.component')
-                    .then(m => m.ReportesAdminComponent)
+                loadComponent: () => import('./components/administrador/reporte-admin/reportes-admin')
+                    .then(m => m.ReportesAdmin)
+            },
+            {
+                path: 'usuarios-admin',
+                loadComponent: () => import ('./components/administrador/usuarios-admin/usuarios-admin')
+                .then(m => m.GestionAdministradores)
             },
             {
                 path: '',
@@ -84,34 +72,29 @@ export const routes: Routes = [
         children: [
             {
                 path: 'dashboard',
-                loadComponent: () => import('./components/empresa/dashboard/dashboard.component')
-                    .then(m => m.EmpresaDashboardComponent)
+                loadComponent: () => import('./components/empresa/dashboard/dashboard')
+                    .then(m => m.DashboardEmpresa)
             },
             {
                 path: 'juegos',
-                loadComponent: () => import('./components/empresa/juegos/juegos.component')
-                    .then(m => m.EmpresaJuegosComponent)
+                loadComponent: () => import('./components/empresa/juegos/juegos')
+                    .then(m => m.MisJuegosEmpresa)
             },
             {
-                path: 'juegos/crear',
-                loadComponent: () => import('./components/empresa/juegos/crear-juego/crear-juego.component')
-                    .then(m => m.CrearJuegoComponent)
+                path: 'crear-juego',
+                loadComponent: () => import('./components/empresa/crear-juego/crear')
+                    .then(m => m.CrearJuego)
             },
             {
-                path: 'juegos/:id',
-                loadComponent: () => import('./components/empresa/juegos/detalle-juego/detalle-juego.component')
-                    .then(m => m.DetalleJuegoEmpresaComponent)
-            },
-            {
-                path: 'usuarios',
-                loadComponent: () => import('./components/empresa/usuarios/usuarios.component')
-                    .then(m => m.UsuariosEmpresaComponent)
+                path: 'usuarios-empresa',
+                loadComponent: () => import('./components/empresa/usuarios-empresa/usuarios-empresa')
+                    .then(m => m.UsuariosEmpresa)
             },
             {
                 path: 'reportes',
-                loadComponent: () => import('./components/empresa/reportes/reportes.component')
-                    .then(m => m.ReportesEmpresaComponent)
-            },
+                loadComponent: () => import('./components/empresa/reportes-empresa/reportes-empresa')
+                    .then(m => m.ReportesEmpresa)
+            },            
             {
                 path: '',
                 redirectTo: 'dashboard',
@@ -128,38 +111,48 @@ export const routes: Routes = [
         children: [
             {
                 path: 'dashboard',
-                loadComponent: () => import('./components/jugador/dashboard/dashboard.component')
-                    .then(m => m.JugadorDashboardComponent)
+                loadComponent: () => import('./components/jugador/dashboard/dashboard')
+                    .then(m => m.DashboardJugador)
             },
             {
                 path: 'tienda',
-                loadComponent: () => import('./components/jugador/tienda/tienda.component')
-                    .then(m => m.TiendaComponent)
+                loadComponent: () => import('./components/jugador/tienda/tienda')
+                    .then(m => m.Tienda)
             },
             {
-                path: 'juego/:id',
-                loadComponent: () => import('./components/jugador/detalle-juego/detalle-juego.component')
-                    .then(m => m.DetalleJuegoComponent)
+                path: 'comprar',
+                loadComponent: () => import('./components/jugador/comprar/comprar')
+                    .then(m => m.Comprar)
+            },
+            {
+                path: 'comentarios',
+                loadComponent: () => import('./components/jugador/comentarios/comentario')
+                    .then(m => m.Comentarios)
             },
             {
                 path: 'biblioteca',
-                loadComponent: () => import('./components/jugador/biblioteca/biblioteca.component')
+                loadComponent: () => import('./components/jugador/biblioteca/biblioteca')
                     .then(m => m.BibliotecaComponent)
             },
             {
                 path: 'cartera',
-                loadComponent: () => import('./components/jugador/cartera/cartera.component')
+                loadComponent: () => import('./components/jugador/cartera/cartera')
                     .then(m => m.CarteraComponent)
             },
             {
                 path: 'grupos',
-                loadComponent: () => import('./components/jugador/grupos/grupos.component')
+                loadComponent: () => import('./components/jugador/grupos/grupos')
                     .then(m => m.GruposComponent)
             },
             {
                 path: 'perfil',
-                loadComponent: () => import('./components/jugador/perfil/perfil.component')
-                    .then(m => m.PerfilComponent)
+                loadComponent: () => import('./components/jugador/perfil/perfil')
+                    .then(m => m.PerfilJugadores)
+            },
+            {
+                path: 'reportes',
+                loadComponent: () => import('./components/jugador/reportes-jugador/reportes-jugador')
+                    .then(m => m.ReportesJugadorComponent)
             },
             {
                 path: '',
@@ -172,9 +165,8 @@ export const routes: Routes = [
     // Ruta 404
     {
         path: '**',
-        loadComponent: () => import('./components/shared/not-found/not-found.component')
-            .then(m => m.NotFoundComponent)
+        redirectTo: '/login'
     }
-            */
+
 ];
 

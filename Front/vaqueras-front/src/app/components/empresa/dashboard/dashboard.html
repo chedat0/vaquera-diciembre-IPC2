@@ -35,7 +35,7 @@
                 <div class="icon">📝</div>
                 <span>Mis Juegos</span>
             </div>
-            <div class="action-card" (click)="navegar('/empresa/usuarios')">
+            <div class="action-card" (click)="navegar('/empresa/usuario-empresa')">
                 <div class="icon">👥</div>
                 <span>Gestionar Usuarios</span>
             </div>
@@ -43,6 +43,10 @@
                 <div class="icon">📊</div>
                 <span>Ver Reportes</span>
             </div>
+        </div>
+        <div class="action-card logout" (click)="cerrarSesion()">
+            <div class="icon">🚪</div>
+            <span>Cerrar sesión</span>
         </div>
     </div>
 </div>
