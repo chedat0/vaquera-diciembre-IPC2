@@ -1,0 +1,118 @@
+<div class="container">
+    <div class="header">
+        <h1>Gestión de Administradores</h1>
+        <button class="btn-primary" (click)="abrirModalCrear()" [disabled]="procesando">
+            Nuevo Administrador
+        </button>
+    </div>
+
+    <div *ngIf="error" class="alert error">{{error}}</div>
+    <div *ngIf="exito" class="alert success">{{exito}}</div>
+
+    <div *ngIf="cargando" class="loading">Cargando...</div>
+
+    <table *ngIf="!cargando && administradores.length > 0">
+        <thead>
+            <tr>
+                <th>Nickname</th>
+                <th>Correo</th>
+                <th>País</th>
+                <th>Teléfono</th>
+                <th>Fecha Nacimiento</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let admin of administradores">
+                <td><strong>{{admin.nickname}}</strong></td>
+                <td>{{admin.correo}}</td>
+                <td>{{admin.pais || 'N/A'}}</td>
+                <td>{{admin.telefono || 'N/A'}}</td>
+                <td>{{admin.fechaNacimiento}}</td>
+                <td class="acciones">
+                    <button class="btn-icon" (click)="abrirModalEditar(admin)" title="Editar">✏️</button>
+                    <button class="btn-icon" (click)="abrirModalPassword(admin)" title="Cambiar contraseña">🔑</button>
+                    <button class="btn-icon danger" (click)="eliminar(admin)" title="Eliminar">🗑️</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div *ngIf="!cargando && administradores.length === 0" class="empty">
+        No hay administradores registrados
+    </div>
+
+    <!-- Modal Crear/Editar -->
+    <div *ngIf="mostrarModalForm" class="modal" (click)="cerrarModalForm()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <h2>{{modoEdicion ? 'Editar' : 'Nuevo'}} Administrador</h2>
+
+            <div class="form-group">
+                <label>Nickname</label>
+                <input type="text" [(ngModel)]="adminActual.nickname" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Correo</label>
+                <input type="email" [(ngModel)]="adminActual.correo" [disabled]="procesando || modoEdicion" />
+                <small *ngIf="modoEdicion" class="hint">El correo no se puede cambiar</small>
+            </div>
+
+            <div class="form-group" *ngIf="!modoEdicion">
+                <label>Contraseña</label>
+                <input type="password" [(ngModel)]="adminActual.password" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Fecha Nacimiento</label>
+                <input type="date" [(ngModel)]="adminActual.fechaNacimiento" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="tel" [(ngModel)]="adminActual.telefono" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>País</label>
+                <input type="text" [(ngModel)]="adminActual.pais" [disabled]="procesando" />
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarModalForm()" [disabled]="procesando">
+                    Cancelar
+                </button>
+                <button class="btn-primary" (click)="guardar()" [disabled]="procesando">
+                    {{procesando ? 'Guardando...' : 'Guardar'}}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cambiar Contraseña -->
+    <div *ngIf="mostrarModalPassword" class="modal" (click)="cerrarModalPassword()">
+        <div class="modal-content small" (click)="$event.stopPropagation()">
+            <h2>Cambiar Contraseña</h2>
+            <p>Usuario: <strong>{{adminPassword?.nickname}}</strong></p>
+
+            <div class="form-group">
+                <label>Nueva Contraseña</label>
+                <input type="password" [(ngModel)]="nuevaPassword" [disabled]="procesando" />
+            </div>
+
+            <div class="form-group">
+                <label>Confirmar Contraseña</label>
+                <input type="password" [(ngModel)]="confirmarPassword" [disabled]="procesando" />
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-secondary" (click)="cerrarModalPassword()" [disabled]="procesando">
+                    Cancelar
+                </button>
+                <button class="btn-primary" (click)="cambiarPassword()" [disabled]="procesando">
+                    {{procesando ? 'Cambiando...' : 'Cambiar Contraseña'}}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

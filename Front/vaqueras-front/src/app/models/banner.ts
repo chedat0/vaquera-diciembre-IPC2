@@ -3,9 +3,10 @@ export interface Banner {
     idJuego: number;
     ordenPrioridad: number;
     activo?: boolean;
-    fechaCreacion?: Date;
+    fechaCreacion?: string;
     tituloJuego?: string;
     imagenUrl?: string;
+    fechaFin?: string;
 }
 
 export interface JuegoBanner {
